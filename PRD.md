@@ -4,9 +4,9 @@
 
 ## Document Control
 
-* **Version:** 1.1
-* **Date:** June 26, 2025
-* **Author:** Samit Barai
+- **Version:** 1.1
+- **Date:** June 26, 2025
+- **Author:** Samit Barai
 
 ---
 
@@ -21,10 +21,10 @@ By combining these, BD teams cut research time and slide-build effort in half, w
 
 ## 2. Goals & Objectives
 
-* **Accelerate BD Research**: From uploaded decks and merchant context (industry, region), auto-suggest pitch structure and content themes.
-* **Automate Slide Creation**: Generate ready-to-review Figma slides with draft text and placeholder visuals.
-* **Maintain Brand Consistency**: Use standardized Figma templates.
-* **Enable Feedback Loop**: Capture edits to refine AI outputs.
+- **Accelerate BD Research**: From uploaded decks and merchant context (industry, region), auto-suggest pitch structure and content themes.
+- **Automate Slide Creation**: Generate ready-to-review Figma slides with draft text and placeholder visuals.
+- **Maintain Brand Consistency**: Use standardized Figma templates.
+- **Enable Feedback Loop**: Capture edits to refine AI outputs.
 
 ## 3. User Personas
 
@@ -34,46 +34,46 @@ By combining these, BD teams cut research time and slide-build effort in half, w
 
 ## 4. Use Cases & User Stories
 
-* **Use Case 1:** As a BD Executive, I upload PDF decks and input merchant industry/geography; I receive slide-wise content strategy and Figma deck draft.
-* **Use Case 2:** As a Design Lead, I review AI-populated Figma files, tweak as needed, and approve.
-* **Use Case 3:** As a Product Owner, I monitor time saved on research vs. manual creation and slide adoption rates.
+- **Use Case 1:** As a BD Executive, I upload PDF decks and input merchant industry/geography; I receive slide-wise content strategy and Figma deck draft.
+- **Use Case 2:** As a Design Lead, I review AI-populated Figma files, tweak as needed, and approve.
+- **Use Case 3:** As a Product Owner, I monitor time saved on research vs. manual creation and slide adoption rates.
 
 ## 5. Functional Requirements
 
 ### 5.1 Ingestion & Contextual Strategy
 
-* **Batch PDF Import:** Upload multiple pitch PDFs containing text and images.
-* **Metadata Tagging:** Capture merchant industry and geography inputs.
-* **Content Outline API:** `/generateOutline` returns section breakdown and key themes per slide based on merchant context.
+- **Batch PDF Import:** Upload multiple pitch PDFs containing text and images.
+- **Metadata Tagging:** Capture merchant industry and geography inputs.
+- **Content Outline API:** `/generateOutline` returns section breakdown and key themes per slide based on merchant context.
 
 ### 5.2 Image Extraction & Reuse
 
-* **Image Parsing:** Detect and extract images (e.g., charts, logos, diagrams) from PDFs using an OCR- and vision-based pipeline.
-* **Asset Catalog:** Store extracted images in an asset repository (S3 or equivalent) with tags for slide section, context, and visual type.
-* **Image Retrieval API:** `/retrieveAssets` returns recommended images for a given slide section, industry, or geography.
-* **Figma Image Insertion:** Populate Figma templates with placeholder frames linked to retrieved image URLs; allow BD to swap or approve assets.
+- **Image Parsing:** Detect and extract images (e.g., charts, logos, diagrams) from PDFs using an OCR- and vision-based pipeline.
+- **Asset Catalog:** Store extracted images in an asset repository (S3 or equivalent) with tags for slide section, context, and visual type.
+- **Image Retrieval API:** `/retrieveAssets` returns recommended images for a given slide section, industry, or geography.
+- **Figma Image Insertion:** Populate Figma templates with placeholder frames linked to retrieved image URLs; allow BD to swap or approve assets.
 
 ### 5.3 Slide Generation via Figma
 
-* **Figma Template Library:** Predefined slide frames in Figma with style tokens.
-* **Populate Content API:** `/createFigmaSlides` accepts outline + merchant info + asset references → generates a Figma file with text layers and image frames populated.
-* **Manual Edit Hooks:** Expose editable text nodes and image slots for quick BD adjustments.
+- **Figma Template Library:** Predefined slide frames in Figma with style tokens.
+- **Populate Content API:** `/createFigmaSlides` accepts outline + merchant info + asset references → generates a Figma file with text layers and image frames populated.
+- **Manual Edit Hooks:** Expose editable text nodes and image slots for quick BD adjustments.
 
 ## 6. Tech Stack. Tech Stack
 
-* **Frontend:** Vite (React + TypeScript) for the review dashboard.
-* **Backend:** Node.js with Express; Postgres for relational data.
-* **Vector Database:** Vespa for slide-chunk embeddings and RAG retrieval
+- **Frontend:** Vite (React + TypeScript) for the review dashboard.
+- **Backend:** Node.js with Express; Postgres for relational data.
+- **Vector Database:** Vespa for slide-chunk embeddings and RAG retrieval
   **Embedding Model:** OpenAI’s text-embedding-ada-002 for generating high-quality embeddings
-* **LLM Provider:** OpenAI GPT-4 via API.
-* **Slide Hosting:** Figma REST API for file creation and updates.
+- **LLM Provider:** OpenAI GPT-4 via API.
+- **Slide Hosting:** Figma REST API for file creation and updates.
 
 ## 7. Non-Functional Requirements
 
-* **Performance:** Outline generation < 3s; Figma slide creation < 5s.
-* **Scalability:** Support 500 concurrent ingestion jobs; 50 parallel Figma exports.
-* **Security:** OAuth2 for Figma; encrypt merchant data in Postgres.
-* **Reliability:** 99.5% uptime for ingestion and export endpoints.
+- **Performance:** Outline generation < 3s; Figma slide creation < 5s.
+- **Scalability:** Support 500 concurrent ingestion jobs; 50 parallel Figma exports.
+- **Security:** OAuth2 for Figma; encrypt merchant data in Postgres.
+- **Reliability:** 99.5% uptime for ingestion and export endpoints.
 
 ## 8. RAG Explained (Layman’s Terms)
 
@@ -104,11 +104,11 @@ Think of RAG like a chef who tastes your past dishes first, then crafts a new re
 
 ## 11. Success Metrics
 
-* **Research Time Saved:** ≥ 50% reduction in BD prep.
-* **Draft Accuracy:** ≥ 70% first-draft approval rate.
-* **Adoption:** 75% BD use within 2 months.
-* **Technical SLA:** 95th percentile endpoint latency < 5s.
+- **Research Time Saved:** ≥ 50% reduction in BD prep.
+- **Draft Accuracy:** ≥ 70% first-draft approval rate.
+- **Adoption:** 75% BD use within 2 months.
+- **Technical SLA:** 95th percentile endpoint latency < 5s.
 
 ---
 
-*Ready for review and next-step alignment!*
+_Ready for review and next-step alignment!_

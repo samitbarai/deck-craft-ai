@@ -9,8 +9,63 @@
         "testStrategy": "1. Verify that all development tools are correctly installed and configured.\n2. Ensure that the frontend can be built and served using Vite.\n3. Confirm that the backend server can start without errors.\n4. Test database connections to both PostgreSQL and Vespa.\n5. Verify that ESLint and Prettier are working as expected.\n6. Ensure that environment variables are properly loaded and accessible.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "in-progress",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize Git Repository and Project Structure",
+            "description": "Create a new Git repository for DeckCraft AI and establish the foundational folder structure for frontend, backend, and shared code.",
+            "dependencies": [],
+            "details": "Set up a remote repository (e.g., on GitHub), clone it locally, and create directories for 'frontend', 'backend', and 'shared'. Commit the initial structure.",
+            "status": "done",
+            "testStrategy": "Verify that the repository is accessible, the folder structure exists, and an initial commit is present."
+          },
+          {
+            "id": 2,
+            "title": "Set Up Node.js Projects and Tooling",
+            "description": "Initialize Node.js projects for both frontend and backend, and configure essential development tools.",
+            "dependencies": [
+              1
+            ],
+            "details": "Run 'npm init' in both 'frontend' and 'backend' folders. Install and configure ESLint and Prettier for code linting and formatting. Add a shared configuration if needed.\n<info added on 2025-06-25T22:15:47.247Z>\nSuccessfully completed Node.js project setup and tooling configuration:\n\n✅ Completed:\n- Initialized Node.js projects in backend/ and frontend/ directories\n- Created root package.json with workspaces configuration for monorepo management\n- Installed and configured ESLint with Prettier integration\n- Set up .prettierrc configuration file\n- Created .prettierignore to exclude certain directories\n- Installed concurrently for simultaneous frontend/backend development\n- Added comprehensive npm scripts for development, building, linting, and formatting\n- Successfully tested ESLint and Prettier - both working correctly\n\n📁 Project Structure:\n- Root package.json with workspaces for frontend and backend\n- ESLint configuration for code quality\n- Prettier configuration for code formatting\n- Scripts ready for concurrent development\n\n🔧 Ready Scripts:\n- npm run dev (runs both frontend and backend)\n- npm run lint / npm run lint:fix\n- npm run format / npm run format:check\n- npm run build (builds both workspaces)\n\nThe tooling foundation is now solid and ready for the next phase of development.\n</info added on 2025-06-25T22:15:47.247Z>",
+            "status": "done",
+            "testStrategy": "Check that 'package.json' files exist, and that ESLint and Prettier are operational in both projects."
+          },
+          {
+            "id": 3,
+            "title": "Configure Frontend with Vite, React, and TypeScript",
+            "description": "Set up the frontend using Vite, React, and TypeScript to enable rapid development and type safety.",
+            "dependencies": [
+              2
+            ],
+            "details": "Install 'vite', 'react', and 'typescript' in the 'frontend' directory. Configure Vite for React and TypeScript support. Add a sample component and verify compilation.",
+            "status": "pending",
+            "testStrategy": "Run the Vite development server and confirm that a basic React page renders without errors."
+          },
+          {
+            "id": 4,
+            "title": "Initialize Backend with Express.js and Database Clients",
+            "description": "Set up the backend using Express.js, and install clients for PostgreSQL and Vespa for data storage and vector search.",
+            "dependencies": [
+              2
+            ],
+            "details": "Install 'express', 'pg', and 'vespa' in the 'backend' directory. Scaffold a basic Express server and connect to a local PostgreSQL instance. Prepare Vespa client configuration.",
+            "status": "pending",
+            "testStrategy": "Start the Express server and verify connectivity to PostgreSQL and Vespa with test queries."
+          },
+          {
+            "id": 5,
+            "title": "Configure Environment Variables and Database Setup",
+            "description": "Set up environment variables for API keys and configuration, and initialize the PostgreSQL and Vespa databases.",
+            "dependencies": [
+              3,
+              4
+            ],
+            "details": "Create '.env' files in both frontend and backend as needed. Use 'dotenv' to load variables. Initialize PostgreSQL schema and configure Vespa for vector storage.",
+            "status": "pending",
+            "testStrategy": "Check that environment variables are loaded correctly and both databases are accessible from the backend."
+          }
+        ]
       },
       {
         "id": 2,
@@ -207,7 +262,7 @@
     ],
     "metadata": {
       "created": "2025-06-25T22:08:50.599Z",
-      "updated": "2025-06-25T22:08:50.599Z",
+      "updated": "2025-06-25T22:15:58.079Z",
       "description": "Tasks for master context"
     }
   }

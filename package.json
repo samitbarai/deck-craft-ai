@@ -1,0 +1,53 @@
+{
+  "name": "deck-craft-ai",
+  "version": "1.0.0",
+  "description": "An AI-powered pitch ingestion and slide-generation tool that learns from your existing pitch decks to craft tailored presentations via Figma templates.",
+  "main": "index.js",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "build": "npm run build --workspaces",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test --workspaces"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samitbarai/deck-craft-ai.git"
+  },
+  "keywords": [
+    "ai",
+    "presentation",
+    "figma",
+    "pdf",
+    "pitch-deck",
+    "business-development"
+  ],
+  "author": "Samit Barai",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/samitbarai/deck-craft-ai/issues"
+  },
+  "homepage": "https://github.com/samitbarai/deck-craft-ai#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5"
+  }
+}

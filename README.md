@@ -9,16 +9,19 @@ DeckCraft AI revolutionizes the business development process by combining automa
 ## ✨ Key Features
 
 ### 🔍 Automated Ingestion & Research Acceleration
+
 - **Batch PDF Import**: Upload multiple pitch PDFs containing text and images
 - **Intelligent Content Analysis**: Extract and analyze text chunks using advanced OCR and vision pipelines
 - **Contextual Strategy Generation**: Auto-generate pitch structure and content themes based on merchant profiles
 
 ### 🎨 Programmatic Slide Generation
+
 - **Figma Integration**: Automatically populate Figma slide templates with AI-drafted content
 - **Image Asset Management**: Extract and catalog images from PDFs with intelligent tagging
 - **Brand Consistency**: Maintain standardized templates with style tokens
 
 ### 🧠 RAG-Powered Intelligence
+
 - **Smart Content Retrieval**: Uses Vespa vector database for intelligent slide chunk embeddings
 - **Contextual Recommendations**: Retrieves most relevant past slides based on merchant profiles
 - **AI-Powered Writing**: Leverages OpenAI GPT-4 for content generation with your existing style
@@ -35,7 +38,7 @@ DeckCraft AI revolutionizes the business development process by combining automa
 - **Backend**: Node.js with Express framework
 - **Database**: PostgreSQL for relational data storage
 - **Vector Database**: Vespa for slide-chunk embeddings and RAG retrieval
-- **AI/ML**: 
+- **AI/ML**:
   - OpenAI GPT-4 for content generation
   - OpenAI text-embedding-ada-002 for embeddings
 - **Design Integration**: Figma REST API for automated slide creation
@@ -44,12 +47,14 @@ DeckCraft AI revolutionizes the business development process by combining automa
 ## 🏗 Architecture
 
 ### Data Flow
+
 1. **Upload & Tag**: Users upload PDFs and specify industry/geography metadata
 2. **Embed & Index**: Backend extracts text chunks, generates embeddings, and stores in Vespa
 3. **Outline Generation**: System retrieves relevant examples and generates content strategy
 4. **Slide Creation**: Figma templates are populated automatically via API integration
 
 ### Core APIs
+
 - `/generateOutline` - Returns section breakdown and key themes per slide
 - `/retrieveAssets` - Returns recommended images for slide sections
 - `/createFigmaSlides` - Generates Figma files with populated content and assets
@@ -57,6 +62,7 @@ DeckCraft AI revolutionizes the business development process by combining automa
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - PostgreSQL database
 - Vespa instance
@@ -105,13 +111,13 @@ AWS_BUCKET_NAME=your_s3_bucket
 
 ## 🗺 Roadmap
 
-| Sprint | Deliverable |
-|--------|-------------|
-| Sprint 1 | PDF ingestion service + Vespa indexing |
+| Sprint   | Deliverable                                     |
+| -------- | ----------------------------------------------- |
+| Sprint 1 | PDF ingestion service + Vespa indexing          |
 | Sprint 2 | `/generateOutline` API with template-backed RAG |
-| Sprint 3 | Figma template library & `/createFigmaSlides` |
-| Sprint 4 | Frontend review dashboard (Vite) |
-| Sprint 5 | Feedback capture & iteration system |
+| Sprint 3 | Figma template library & `/createFigmaSlides`   |
+| Sprint 4 | Frontend review dashboard (Vite)                |
+| Sprint 5 | Feedback capture & iteration system             |
 
 ## 📊 Performance Requirements
 
@@ -149,4 +155,4 @@ For questions and support, please reach out to the development team or create an
 
 ---
 
-**DeckCraft AI** - Transforming how business development teams create compelling pitch presentations through the power of AI and automation. 
+**DeckCraft AI** - Transforming how business development teams create compelling pitch presentations through the power of AI and automation.

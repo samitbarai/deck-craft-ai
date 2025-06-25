@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Generated files
+.taskmaster/
+.clinerules/
+.cursor/
+.roo/
+.trae/
+.windsurf/
+.vscode/
+.github/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Config files that shouldn't be formatted
+*.min.js
+*.min.css
+
+# OS generated files
+.DS_Store
+Thumbs.db 
