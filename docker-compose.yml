@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: deckcraft_ai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/database/init-database.sql:/docker-entrypoint-initdb.d/01-init.sql
+    networks:
+      - deckcraft-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Vespa Vector Database (Optional - for advanced development)
+  vespa:
+    image: vespaengine/vespa:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+      - "19071:19071"
+    volumes:
+      - vespa_data:/opt/vespa/var
+    networks:
+      - deckcraft-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ApplicationStatus"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full  # Only start with --profile full
+
+  # Redis (for caching and session storage)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - deckcraft-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - full  # Only start with --profile full
+
+  # pgAdmin (PostgreSQL Web UI)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@deckcraft.ai
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - deckcraft-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - tools  # Only start with --profile tools
+
+volumes:
+  postgres_data:
+    driver: local
+  vespa_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  deckcraft-network:
+    driver: bridge 
