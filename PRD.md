@@ -1,114 +1,104 @@
-## Product Name
+# DeckCraft AI PRD
 
-**DeckCraft AI** — An AI-powered pitch ingestion and slide-generation tool that learns from your existing Juspay pitch decks to craft tailored presentations via Figma templates.
-
-## Document Control
-
-- **Version:** 1.1
-- **Date:** June 26, 2025
-- **Author:** Samit Barai
+**Version:** 1.2
+**Date:** June 26, 2025
+**Author:** Samit Barai
 
 ---
 
 ## 1. Executive Summary
 
-DeckCraft AI focuses on two core pillars:
-
-1. **Automated Ingestion & Research Acceleration** — Rapidly ingest historical PDF decks and, based on industry and geography metadata, generate a content strategy outline for a new merchant.
-2. **Programmatic Slide Generation** — Populate Figma slide templates automatically with AI-drafted content, minimizing manual slide creation.
-
-By combining these, BD teams cut research time and slide-build effort in half, while ensuring consistency and relevance.
+**DeckCraft AI** is an AI-driven platform that ingests existing Juspay pitch decks—PDFs containing both text and images—and automatically generates drafts of new slides in Figma templates. By combining rapid content outline generation with programmatic slide creation, it empowers Business Development (BD) teams to reduce research and design time by at least 50%, while maintaining brand consistency.
 
 ## 2. Goals & Objectives
 
-- **Accelerate BD Research**: From uploaded decks and merchant context (industry, region), auto-suggest pitch structure and content themes.
-- **Automate Slide Creation**: Generate ready-to-review Figma slides with draft text and placeholder visuals.
-- **Maintain Brand Consistency**: Use standardized Figma templates.
-- **Enable Feedback Loop**: Capture edits to refine AI outputs.
+1. **Accelerate BD Research:** Analyze uploaded decks plus merchant-specific metadata (industry, geography) to auto-generate a content strategy outline.
+2. **Automate Slide Creation:** Populate Figma templates with AI-drafted text and relevant images.
+3. **Ensure Brand Consistency:** Leverage a centralized Figma template library.
+4. **Enable Continuous Improvement:** Capture user edits for ongoing AI refinement.
 
 ## 3. User Personas
 
-1. **BD Executive:** Wants quick content outlines and draft slides based on merchant profile.
-2. **Design Lead:** Reviews generated Figma slides for brand alignment.
-3. **Product Owner:** Tracks ingestion volumes and slide-generation metrics; iterates templates.
+* **BD Executive:** Quickly produces tailored outlines and draft slides for new prospects.
+* **Design Lead:** Reviews and fine-tunes AI-generated decks for visual and stylistic alignment.
+* **Product Owner:** Monitors system usage, time savings, and draft acceptance rates.
 
 ## 4. Use Cases & User Stories
 
-- **Use Case 1:** As a BD Executive, I upload PDF decks and input merchant industry/geography; I receive slide-wise content strategy and Figma deck draft.
-- **Use Case 2:** As a Design Lead, I review AI-populated Figma files, tweak as needed, and approve.
-- **Use Case 3:** As a Product Owner, I monitor time saved on research vs. manual creation and slide adoption rates.
+* **UC1:** *As a BD Executive*, I upload PDFs and enter merchant details so I can receive a structured outline and Figma draft within minutes.
+* **UC2:** *As a Design Lead*, I review the generated Figma file to ensure it matches brand guidelines, adjusting text or images as needed.
+* **UC3:** *As a Product Owner*, I track key metrics—such as time saved per pitch and first-draft approval rate—to measure ROI.
 
 ## 5. Functional Requirements
 
 ### 5.1 Ingestion & Contextual Strategy
 
-- **Batch PDF Import:** Upload multiple pitch PDFs containing text and images.
-- **Metadata Tagging:** Capture merchant industry and geography inputs.
-- **Content Outline API:** `/generateOutline` returns section breakdown and key themes per slide based on merchant context.
+* **Batch PDF Import:** Upload multiple pitch decks containing text and images.
+* **Metadata Tagging:** Input merchant industry and geography.
+* **Outline Generation API (`/generateOutline`):** Returns slide-by-slide section headings and key themes based on merchant context.
 
 ### 5.2 Image Extraction & Reuse
 
-- **Image Parsing:** Detect and extract images (e.g., charts, logos, diagrams) from PDFs using an OCR- and vision-based pipeline.
-- **Asset Catalog:** Store extracted images in an asset repository (S3 or equivalent) with tags for slide section, context, and visual type.
-- **Image Retrieval API:** `/retrieveAssets` returns recommended images for a given slide section, industry, or geography.
-- **Figma Image Insertion:** Populate Figma templates with placeholder frames linked to retrieved image URLs; allow BD to swap or approve assets.
+* **Image Parsing:** Use OCR and vision libraries to detect and extract charts, diagrams, and logos.
+* **Asset Catalog:** Store visuals in a tagged repository (e.g., S3) by slide section and content type.
+* **Asset Retrieval API (`/retrieveAssets`):** Suggests suitable images for each slide section.
+* **Figma Insertion:** Populate image frames in templates with retrieved assets, allowing manual swaps.
 
 ### 5.3 Slide Generation via Figma
 
-- **Figma Template Library:** Predefined slide frames in Figma with style tokens.
-- **Populate Content API:** `/createFigmaSlides` accepts outline + merchant info + asset references → generates a Figma file with text layers and image frames populated.
-- **Manual Edit Hooks:** Expose editable text nodes and image slots for quick BD adjustments.
+* **Template Library:** Prebuilt Figma slide frames with standardized style tokens.
+* **Content & Asset API (`/createFigmaSlides`):** Consumes outline, merchant metadata, and asset references to generate a complete Figma deck.
+* **Editable Hooks:** Expose text nodes and image placeholders for quick BD adjustments.
 
-## 6. Tech Stack. Tech Stack
+## 6. Tech Stack
 
-- **Frontend:** Vite (React + TypeScript) for the review dashboard.
-- **Backend:** Node.js with Express; Postgres for relational data.
-- **Vector Database:** Vespa for slide-chunk embeddings and RAG retrieval
-  **Embedding Model:** OpenAI’s text-embedding-ada-002 for generating high-quality embeddings
-- **LLM Provider:** OpenAI GPT-4 via API.
-- **Slide Hosting:** Figma REST API for file creation and updates.
+* **Frontend:** Vite (React + TypeScript) for the review dashboard.
+* **Backend:** Node.js with Express; PostgreSQL for relational data storage.
+* **Vector Database:** Vespa, indexed with embeddings for RAG retrieval.
+* **Embedding Model:** OpenAI’s text-embedding-ada-002.
+* **LLM Provider:** OpenAI GPT-4.
+* **Slide Hosting:** Figma REST API for file creation and updates.
 
 ## 7. Non-Functional Requirements
 
-- **Performance:** Outline generation < 3s; Figma slide creation < 5s.
-- **Scalability:** Support 500 concurrent ingestion jobs; 50 parallel Figma exports.
-- **Security:** OAuth2 for Figma; encrypt merchant data in Postgres.
-- **Reliability:** 99.5% uptime for ingestion and export endpoints.
+* **Performance:** Outline generation under 3 seconds; slide creation under 5 seconds.
+* **Scalability:** Support 500 concurrent ingestion jobs and 50 parallel exports.
+* **Security:** Encrypt sensitive data at rest and in transit; OAuth2 for Figma authentication.
+* **Reliability:** 99.5% uptime for core services.
 
 ## 8. RAG Explained (Layman’s Terms)
 
-Retrieval-Augmented Generation (RAG) works by:
+Retrieval-Augmented Generation (RAG) combines two steps:
 
-1. **Remembering Examples:** We store bits of your past decks in Vespa so the AI has concrete examples.
-2. **Finding the Best Fit:** When you request a new slide, we search Vespa for the most relevant past slides (based on your merchant’s profile).
-3. **Smart Writing:** We feed those examples to GPT-4 along with your request, so it writes new content that matches your style and the merchant’s context.
+1. **Retrieve Examples:** We store segments of your historical decks in Vespa. When you request new content, Vespa finds the most relevant past slides based on your merchant’s profile.
+2. **Generate Text:** We feed these examples and your request into GPT-4, which then writes new slide content that mirrors your style and addresses your prospect’s needs.
 
-Think of RAG like a chef who tastes your past dishes first, then crafts a new recipe tailored to a new guest’s palate.
+*Analogy:* Imagine a chef who reviews past favorite dishes before crafting a custom menu for a special guest—RAG ensures your AI-driven pitches taste just right.
 
 ## 9. Data Flow
 
-1. **Upload & Tag:** User uploads PDFs + chooses industry/geography.
-2. **Embed & Index:** Backend extracts text chunks → embeds → stores in Vespa.
-3. **Outline Request:** Frontend calls `/generateOutline` → retrieves top-k slide examples from Vespa → GPT-4 drafts outline.
-4. **Slide Creation:** Frontend calls `/createFigmaSlides` → populates templates via Figma API.
+1. **Upload & Tag:** User imports PDFs and enters merchant metadata.
+2. **Extract & Index:** Backend extracts text and images, generates embeddings, and stores everything in Vespa.
+3. **Outline Request:** Frontend calls `/generateOutline`; Vespa retrieves examples; GPT-4 drafts the outline.
+4. **Slide Creation:** Frontend calls `/createFigmaSlides`; Figma API populates templates with text and assets.
 
 ## 10. Roadmap & Milestones
 
-| Sprint | Deliverable                                     |
-| ------ | ----------------------------------------------- |
-| 1      | PDF ingestion service + Vespa indexing          |
-| 2      | `/generateOutline` API with template-backed RAG |
-| 3      | Figma template library & `/createFigmaSlides`   |
-| 4      | Frontend review dashboard (Vite)                |
-| 5      | Feedback capture + iteration                    |
+| Sprint | Deliverable                                 |
+| ------ | ------------------------------------------- |
+| 1      | PDF ingestion + Vespa indexing              |
+| 2      | Outline API with RAG-based retrieval        |
+| 3      | Figma template library + Slide creation API |
+| 4      | Frontend review dashboard                   |
+| 5      | Feedback capture & AI refinement            |
 
 ## 11. Success Metrics
 
-- **Research Time Saved:** ≥ 50% reduction in BD prep.
-- **Draft Accuracy:** ≥ 70% first-draft approval rate.
-- **Adoption:** 75% BD use within 2 months.
-- **Technical SLA:** 95th percentile endpoint latency < 5s.
+* **Time Saved:** ≥ 50% reduction in research and slide-building time.
+* **Draft Approval:** ≥ 70% of slides approved without edits.
+* **Adoption Rate:** 75% of BD team usage within two months.
+* **Latency:** 95th percentile API response < 5 seconds.
 
 ---
 
-_Ready for review and next-step alignment!_
+*Final polish applied—grammar, consistency, and clarity ensured.*

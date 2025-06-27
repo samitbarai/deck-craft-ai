@@ -1,58 +1,70 @@
-import { Router, Request, Response } from 'express';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-const router = Router();
-
-// API Info endpoint
-router.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'DeckCraft AI API v1',
-    version: '1.0.0',
-    endpoints: [
-      'GET /api/v1/health - API health check',
-      'POST /api/v1/pdf/upload - Upload PDF for ingestion (Coming soon)',
-      'POST /api/v1/content/generate-outline - Generate content outline (Coming soon)',
-      'GET /api/v1/content/retrieve-assets - Retrieve content assets (Coming soon)',
-      'POST /api/v1/figma/create-slides - Create Figma slides (Coming soon)',
-      'GET /api/v1/merchant/profile - Get merchant profile (Coming soon)',
-    ],
-    documentation: 'https://api.deckcraft.ai/docs',
+// Plugin function for Fastify
+export default async function apiRoutes(fastify: FastifyInstance) {
+  // API documentation endpoint
+  fastify.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.status(200).send({
+      name: 'DeckCraft AI API',
+      version: '1.0.0',
+      description: 'Modern AI-powered pitch deck analysis and content generation platform',
+      documentation: {
+        swagger: '/api/v1/docs',
+        postman: '/api/v1/postman.json'
+      },
+      endpoints: {
+        pdf: {
+          upload: 'POST /api/v1/pdf/upload',
+          batch: 'POST /api/v1/pdf/batch',
+          ocr: 'POST /api/v1/pdf/ocr',
+          health: 'GET /api/v1/pdf/health'
+        },
+        health: {
+          basic: 'GET /health',
+          detailed: 'GET /health/detailed'
+        }
+      },
+      features: [
+        'PDF Text Extraction using pdf-parse',
+        'OCR Processing with Tesseract.js',
+        'Image Optimization with Sharp',
+        'Batch Processing Support',
+        'Metadata Tagging',
+        'Modern Fastify Framework'
+      ],
+      limits: {
+        maxFileSize: '100MB',
+        maxBatchSize: 10,
+        supportedFormats: ['PDF', 'Images']
+      }
+    });
   });
-});
 
-// Placeholder routes for main API endpoints from PRD
-router.post('/pdf/upload', (req: Request, res: Response) => {
-  res.status(501).json({
-    message: 'PDF upload endpoint - Coming soon',
-    description: 'This endpoint will handle PDF ingestion and processing',
+  // Future feature endpoints
+  fastify.post('/generate/outline', async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.status(501).send({
+      error: false,
+      message: 'Outline generation coming soon!',
+      status: 'not_implemented',
+      expected: 'Q2 2024'
+    });
   });
-});
 
-router.post('/content/generate-outline', (req: Request, res: Response) => {
-  res.status(501).json({
-    message: 'Content outline generation endpoint - Coming soon',
-    description: 'This endpoint will generate content outlines based on merchant data',
+  fastify.post('/generate/content', async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.status(501).send({
+      error: false,
+      message: 'Content generation coming soon!',
+      status: 'not_implemented',
+      expected: 'Q2 2024'
+    });
   });
-});
 
-router.get('/content/retrieve-assets', (req: Request, res: Response) => {
-  res.status(501).json({
-    message: 'Asset retrieval endpoint - Coming soon',
-    description: 'This endpoint will retrieve relevant content assets from vector database',
+  fastify.post('/generate/deck', async (request: FastifyRequest, reply: FastifyReply) => {
+    return reply.status(501).send({
+      error: false,
+      message: 'Full deck generation coming soon!',
+      status: 'not_implemented',
+      expected: 'Q3 2024'
+    });
   });
-});
-
-router.post('/figma/create-slides', (req: Request, res: Response) => {
-  res.status(501).json({
-    message: 'Figma slide creation endpoint - Coming soon',
-    description: 'This endpoint will create Figma slide templates',
-  });
-});
-
-router.get('/merchant/profile', (req: Request, res: Response) => {
-  res.status(501).json({
-    message: 'Merchant profile endpoint - Coming soon',
-    description: 'This endpoint will return merchant profile data',
-  });
-});
-
-export default router; 
+} 
