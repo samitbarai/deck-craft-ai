@@ -123,83 +123,92 @@
       },
       {
         "id": 6,
-        "title": "Implement Figma Integration",
-        "description": "Set up integration with Figma API for template management and slide creation.",
+        "title": "Implement Google Slides Integration",
+        "description": "Set up integration with Google Slides API for template management and slide creation.",
         "status": "in-progress",
         "dependencies": [
           1
         ],
         "priority": "high",
-        "details": "1. Set up Figma OAuth2 authentication.\n2. Implement Figma REST API client using axios@1.x.\n3. Create functions for fetching Figma templates.\n4. Implement methods for creating new Figma files from templates.\n5. Develop functions for updating text layers and image frames in Figma.\n\nKey Figma API endpoints to use:\n- GET /v1/files/:file_key to fetch file data\n- POST /v1/files to create a new file\n- PUT /v1/files/:file_key/nodes to update file content\n\nExample Figma API usage:\n```javascript\nconst axios = require('axios');\n\nconst figmaApiClient = axios.create({\n  baseURL: 'https://api.figma.com/v1',\n  headers: {\n    'X-Figma-Token': process.env.FIGMA_ACCESS_TOKEN\n  }\n});\n\nasync function createFileFromTemplate(templateFileKey, name) {\n  try {\n    const response = await figmaApiClient.post('/files', {\n      name,\n      files: [templateFileKey]\n    });\n    return response.data;\n  } catch (error) {\n    console.error('Error creating Figma file:', error);\n    throw error;\n  }\n}\n```\n<info added on 2025-06-27T05:00:36.875Z>\n## OAuth2 Authentication Implementation Details\n\n### OAuth2 Flow Setup\n1. Register your application with Figma to obtain client credentials\n2. Implement the following OAuth2 endpoints:\n   - Authorization endpoint: `https://www.figma.com/oauth`\n   - Token endpoint: `https://www.figma.com/api/oauth/token`\n   - Scopes needed: `file_read`, `file_write`\n\n### Node.js Implementation\n```javascript\nconst { AuthorizationCode } = require('simple-oauth2');\n\n// OAuth2 configuration\nconst oauth2Config = {\n  client: {\n    id: process.env.FIGMA_CLIENT_ID,\n    secret: process.env.FIGMA_CLIENT_SECRET,\n  },\n  auth: {\n    tokenHost: 'https://www.figma.com',\n    authorizePath: '/oauth',\n    tokenPath: '/api/oauth/token',\n  }\n};\n\nconst oauth2Client = new AuthorizationCode(oauth2Config);\n\n// Generate authorization URL\nfunction getAuthorizationUrl() {\n  return oauth2Client.authorizeURL({\n    redirect_uri: process.env.FIGMA_REDIRECT_URI,\n    scope: 'file_read file_write',\n    state: crypto.randomBytes(16).toString('hex') // CSRF protection\n  });\n}\n\n// Exchange authorization code for tokens\nasync function getAccessToken(code) {\n  try {\n    const tokenParams = {\n      code,\n      redirect_uri: process.env.FIGMA_REDIRECT_URI\n    };\n    const result = await oauth2Client.getToken(tokenParams);\n    return result.token;\n  } catch (error) {\n    console.error('Error exchanging code for token:', error);\n    throw error;\n  }\n}\n```\n\n### Token Management\n1. Store access tokens securely in database with user association\n2. Implement token refresh logic when tokens expire\n3. Include proper error handling for authentication failures\n\n### Security Considerations\n- Use HTTPS for all OAuth2 redirects and API calls\n- Implement CSRF protection with state parameter\n- Store client secret securely using environment variables\n- Validate all OAuth responses before processing\n</info added on 2025-06-27T05:00:36.875Z>",
-        "testStrategy": "1. Verify OAuth2 authentication process.\n2. Test Figma API client with mock responses.\n3. Validate template fetching functionality.\n4. Test file creation from templates.\n5. Verify text and image updating in Figma files.\n6. Integration test the entire Figma workflow.\n7. Measure API call latencies and optimize if necessary.",
+        "details": "1. Set up Google Slides OAuth2 authentication.\n2. Implement Google Slides API client using googleapis library.\n3. Create functions for fetching Google Slides templates.\n4. Implement methods for creating new presentations from templates.\n5. Develop functions for updating text placeholders and image placeholders in Google Slides.\n\nKey Google Slides API endpoints to use:\n- presentations.create() to create new presentations\n- presentations.get() to fetch presentation data\n- presentations.batchUpdate() to update presentation content\n\nExample Google Slides API usage:\n```javascript\nconst {google} = require('googleapis');\n\nasync function createPresentationFromTemplate(templateId, title, auth) {\n  const slides = google.slides({version: 'v1', auth});\n  \n  try {\n    // Create a copy of the template\n    const response = await slides.presentations.create({\n      requestBody: {\n        title: title\n      }\n    });\n    \n    return response.data;\n  } catch (error) {\n    console.error('Error creating Google Slides presentation:', error);\n    throw error;\n  }\n}\n```\n<info added on 2025-06-27T05:00:36.875Z>\n## OAuth2 Authentication Implementation Details\n\n### OAuth2 Flow Setup\n1. Register your application with Google Cloud Console to obtain client credentials\n2. Implement the following OAuth2 endpoints:\n   - Authorization endpoint: `https://accounts.google.com/o/oauth2/auth`\n   - Token endpoint: `https://oauth2.googleapis.com/token`\n   - Scopes needed: `https://www.googleapis.com/auth/presentations`, `https://www.googleapis.com/auth/drive.readonly`\n\n### Node.js Implementation\n```javascript\nconst {google} = require('googleapis');\n\n// OAuth2 configuration\nconst oauth2Client = new google.auth.OAuth2(\n  process.env.GOOGLE_CLIENT_ID,\n  process.env.GOOGLE_CLIENT_SECRET,\n  process.env.GOOGLE_REDIRECT_URI\n);\n\n// Generate authorization URL\nfunction getAuthorizationUrl() {\n  return oauth2Client.generateAuthUrl({\n    access_type: 'offline',\n    scope: [\n      'https://www.googleapis.com/auth/presentations',\n      'https://www.googleapis.com/auth/drive.readonly'\n    ],\n    prompt: 'consent' // Force to get refresh token\n  });\n}\n\n// Exchange authorization code for tokens\nasync function getAccessToken(code) {\n  try {\n    const {tokens} = await oauth2Client.getToken(code);\n    oauth2Client.setCredentials(tokens);\n    return tokens;\n  } catch (error) {\n    console.error('Error exchanging code for token:', error);\n    throw error;\n  }\n}\n```\n\n### Token Management\n1. Store access tokens securely in database with user association\n2. Implement token refresh logic when tokens expire\n3. Include proper error handling for authentication failures\n\n### Security Considerations\n- Use HTTPS for all OAuth2 redirects and API calls\n- Implement state parameter for CSRF protection\n- Store client secret securely using environment variables\n- Validate all OAuth responses before processing\n</info added on 2025-06-27T05:00:36.875Z>",
+        "testStrategy": "1. Verify OAuth2 authentication process with Google.\n2. Test Google Slides API client with mock responses.\n3. Validate template fetching functionality.\n4. Test presentation creation from templates.\n5. Verify text and image updating in Google Slides presentations.\n6. Integration test the entire Google Slides workflow.\n7. Measure API call latencies and optimize if necessary.",
         "subtasks": [
           {
             "id": 1,
-            "title": "Configure Figma OAuth2 Application and Environment Variables",
-            "description": "Register the application in the Figma Developers dashboard to obtain OAuth2 credentials (client ID and secret). Set up all required environment variables in the Fastify backend, including client ID, client secret, and redirect URI, following secure storage best practices.",
-            "dependencies": [],
-            "details": "Follow Figma's official process to create an OAuth2 app, specifying the correct redirect URI and required scopes (`file_read`, `file_write`). Store credentials securely using environment variables and ensure they are not exposed in source control.",
+            "title": "Configure Google Slides OAuth2 Application and Environment Variables",
+            "description": "Register the application in the Google Cloud Console to obtain OAuth2 credentials (client ID and secret). Set up all required environment variables in the Fastify backend, including client ID, client secret, and redirect URI, following secure storage best practices.",
             "status": "pending",
+            "dependencies": [],
+            "details": "Follow Google's official process to create an OAuth2 app in the Google Cloud Console, enabling the Google Slides API and Drive API. Specify the correct redirect URI and required scopes (`https://www.googleapis.com/auth/presentations`, `https://www.googleapis.com/auth/drive.readonly`). Store credentials securely using environment variables and ensure they are not exposed in source control.",
             "testStrategy": "Verify that environment variables are loaded correctly and that sensitive values are not present in logs or public files."
           },
           {
             "id": 2,
             "title": "Implement OAuth2 Client and Authentication Flow Handlers",
-            "description": "Set up the OAuth2 client in the Fastify backend using a library such as simple-oauth2. Implement route handlers for initiating the OAuth2 authorization flow and handling the callback to exchange the authorization code for tokens.",
+            "description": "Set up the OAuth2 client in the Fastify backend using the googleapis library. Implement route handlers for initiating the OAuth2 authorization flow and handling the callback to exchange the authorization code for tokens.",
+            "status": "pending",
             "dependencies": [
               1
             ],
-            "details": "Configure the OAuth2 client with Figma endpoints and scopes. Create Fastify routes for `/auth/figma/login` (redirects to Figma) and `/auth/figma/callback` (handles the code exchange). Include CSRF protection using the state parameter.",
-            "status": "pending",
-            "testStrategy": "Test the login flow end-to-end: user is redirected to Figma, grants access, and is redirected back with tokens successfully exchanged and stored."
+            "details": "Configure the OAuth2 client with Google endpoints and scopes. Create Fastify routes for `/auth/google/login` (redirects to Google) and `/auth/google/callback` (handles the code exchange). Include CSRF protection using the state parameter.",
+            "testStrategy": "Test the login flow end-to-end: user is redirected to Google, grants access, and is redirected back with tokens successfully exchanged and stored."
           },
           {
             "id": 3,
             "title": "Develop Secure Token Storage and Refresh Logic",
-            "description": "Implement secure storage of Figma access and refresh tokens in the backend, associated with the authenticated user. Add logic to refresh tokens automatically when expired and handle token errors gracefully.",
+            "description": "Implement secure storage of Google OAuth access and refresh tokens in the backend, associated with the authenticated user. Add logic to refresh tokens automatically when expired and handle token errors gracefully.",
+            "status": "pending",
             "dependencies": [
               2
             ],
-            "details": "Store tokens in a secure database table linked to user IDs. Implement token refresh using the refresh token grant, updating stored tokens as needed. Ensure error handling for invalid or expired tokens.",
-            "status": "pending",
+            "details": "Store tokens in a secure database table linked to user IDs. Implement token refresh using the refresh token, updating stored tokens as needed. Ensure error handling for invalid or expired tokens.",
             "testStrategy": "Simulate token expiration and verify that the refresh logic obtains a new access token and updates the database without user interruption."
           },
           {
             "id": 4,
-            "title": "Set Up Figma API Client with Authenticated Requests",
-            "description": "Create a reusable Figma API client using axios@1.x, configured to include the user's access token in all requests. Ensure the client is compatible with Fastify and supports error handling for authentication failures.",
+            "title": "Set Up Google Slides API Client with Authenticated Requests",
+            "description": "Create a reusable Google Slides API client using the googleapis library, configured to include the user's access token in all requests. Ensure the client is compatible with Fastify and supports error handling for authentication failures.",
+            "status": "pending",
             "dependencies": [
               3
             ],
-            "details": "Configure axios instances per user session with the correct `X-Figma-Token` header. Handle token refresh transparently if a 401 response is received. Integrate with Fastify's request lifecycle.",
-            "status": "pending",
-            "testStrategy": "Test API requests to Figma endpoints with valid and expired tokens, ensuring correct behavior and error reporting."
+            "details": "Configure Google API client instances per user session with the correct authentication. Handle token refresh transparently if a 401 response is received. Integrate with Fastify's request lifecycle.",
+            "testStrategy": "Test API requests to Google Slides endpoints with valid and expired tokens, ensuring correct behavior and error reporting."
           },
           {
             "id": 5,
             "title": "Implement Template Management and Slide Creation Endpoints",
-            "description": "Develop Fastify route handlers that use the Figma API client to fetch templates, create new files from templates, and update text layers and image frames. Ensure endpoints are secure and follow RESTful conventions.",
+            "description": "Develop Fastify route handlers that use the Google Slides API client to fetch templates, create new presentations from templates, and update text and image placeholders. Ensure endpoints are secure and follow RESTful conventions.",
+            "status": "pending",
             "dependencies": [
               4
             ],
-            "details": "Implement endpoints for: fetching templates (`GET /figma/templates`), creating files from templates (`POST /figma/files`), and updating file content (`PUT /figma/files/:fileKey/nodes`). Validate input and handle Figma API errors.",
+            "details": "Implement endpoints for: fetching templates (`GET /slides/templates`), creating presentations from templates (`POST /slides/presentations`), and updating presentation content (`PUT /slides/presentations/:presentationId`). Use presentations.get(), presentations.create(), and presentations.batchUpdate() methods. Validate input and handle Google API errors.",
+            "testStrategy": "Write integration tests for each endpoint, verifying correct Google Slides API interaction and proper error handling for invalid input or API failures."
+          },
+          {
+            "id": 6,
+            "title": "Update Task Title Documentation",
+            "description": "Update all internal documentation and references to reflect that this task implements Google Slides integration rather than Figma integration.",
             "status": "pending",
-            "testStrategy": "Write integration tests for each endpoint, verifying correct Figma API interaction and proper error handling for invalid input or API failures."
+            "dependencies": [],
+            "details": "While maintaining the original task title in the system for consistency, ensure all documentation, comments, and references in the codebase accurately reflect that this is a Google Slides integration. Update any misleading references to Figma in comments, function names, or variable names.",
+            "testStrategy": "Review all code and documentation to ensure consistent terminology around Google Slides integration."
           }
         ]
       },
       {
         "id": 7,
         "title": "Implement Slide Generation Service",
-        "description": "Create the /createFigmaSlides API endpoint that generates Figma slides based on the content outline and merchant info.",
+        "description": "Create the /createGoogleSlides API endpoint that generates Google Slides presentations based on the content outline and merchant info.",
         "status": "pending",
         "dependencies": [
           5,
           6
         ],
         "priority": "high",
-        "details": "1. Set up an Express.js route for /createFigmaSlides.\n2. Implement input validation for outline, merchant info, and asset references.\n3. Integrate with Figma API to create a new file from a template.\n4. Use GPT-4 to generate detailed content for each slide based on the outline.\n5. Update Figma file with generated content and asset references.\n6. Implement error handling and retries for Figma API calls.\n\nAPI Flow:\n1. Receive outline, merchant info, and asset references.\n2. Create a new Figma file from the template.\n3. For each slide in the outline:\n   a. Generate detailed content using GPT-4.\n   b. Update text layers in Figma.\n   c. Insert asset references into image frames.\n4. Return the Figma file URL and edit permissions.\n\nExample GPT-4 prompt for slide content:\n```\nGenerate detailed content for the following slide:\n\nSlide Title: {slide_title}\nKey Themes:\n- {theme1}\n- {theme2}\n\nMerchant Context:\nIndustry: {industry}\nGeography: {geography}\n\nProvide content in the following format:\n- Headline: [A catchy headline for the slide]\n- Bullet Points:\n  * [Bullet point 1]\n  * [Bullet point 2]\n  * [Bullet point 3]\n- Additional Notes: [Any additional context or information]\n```",
-        "testStrategy": "1. Unit test input validation.\n2. Mock Figma API calls and test integration.\n3. Verify GPT-4 content generation for various slide types.\n4. Test error handling and retry mechanisms.\n5. Measure end-to-end latency for slide generation and optimize to meet 5s performance target.\n6. Integration test with real merchant data and Figma templates.\n7. Validate consistency and quality of generated slides.\n8. Test parallel export capability to ensure system can handle 50 concurrent slide generation jobs.",
+        "details": "1. Set up an Express.js route for /createGoogleSlides.\n2. Implement input validation for outline, merchant info, and asset references.\n3. Integrate with Google Slides API using the googleapis library to create a new presentation from a template.\n4. Use GPT-4 to generate detailed content for each slide based on the outline.\n5. Update Google Slides presentation with generated content and asset references.\n6. Implement error handling and retries for Google Slides API calls.\n\nAPI Flow:\n1. Receive outline, merchant info, and asset references.\n2. Create a new Google Slides presentation from a template.\n3. For each slide in the outline:\n   a. Generate detailed content using GPT-4.\n   b. Update text placeholders in Google Slides.\n   c. Insert asset references into image placeholders.\n4. Return the Google Slides presentation URL and sharing permissions.\n\nExample GPT-4 prompt for slide content:\n```\nGenerate detailed content for the following slide:\n\nSlide Title: {slide_title}\nKey Themes:\n- {theme1}\n- {theme2}\n\nMerchant Context:\nIndustry: {industry}\nGeography: {geography}\n\nProvide content in the following format:\n- Headline: [A catchy headline for the slide]\n- Bullet Points:\n  * [Bullet point 1]\n  * [Bullet point 2]\n  * [Bullet point 3]\n- Additional Notes: [Any additional context or information]\n```",
+        "testStrategy": "1. Unit test input validation.\n2. Mock Google Slides API calls and test integration.\n3. Verify GPT-4 content generation for various slide types.\n4. Test error handling and retry mechanisms.\n5. Measure end-to-end latency for slide generation and optimize to meet 5s performance target.\n6. Integration test with real merchant data and Google Slides templates.\n7. Validate consistency and quality of generated slides.\n8. Test parallel export capability to ensure system can handle 50 concurrent slide generation jobs.",
         "subtasks": []
       },
       {
