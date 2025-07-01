@@ -12,6 +12,7 @@ dotenv.config();
 import healthRoutes from './routes/health';
 import pdfRoutes from './routes/pdf';
 import apiRoutes from './routes/api';
+import googleAuthRoutes from './routes/google-auth';
 
 // Create Fastify app
 const app: FastifyInstance = Fastify({
@@ -65,6 +66,7 @@ async function registerRoutes() {
   await app.register(healthRoutes, { prefix: '/health' });
   await app.register(pdfRoutes, { prefix: '/api/v1/pdf' });
   await app.register(apiRoutes, { prefix: '/api/v1' });
+  await app.register(googleAuthRoutes, { prefix: '/api/v1/auth/google' });
 }
 
 // Root route
@@ -77,9 +79,10 @@ app.get('/', async (request, reply) => {
       health: '/health',
       api: '/api/v1',
       pdf: '/api/v1/pdf',
+      auth: '/api/v1/auth/google',
       docs: '/api/v1/docs'
     },
-    features: ['PDF Ingestion', 'Text Extraction', 'OCR Processing', 'Metadata Tagging']
+    features: ['PDF Ingestion', 'Text Extraction', 'OCR Processing', 'Metadata Tagging', 'Google Slides Integration']
   };
 });
 
@@ -109,7 +112,13 @@ app.setNotFoundHandler(async (request, reply) => {
       'POST /api/v1/pdf/upload',
       'POST /api/v1/pdf/batch',
       'GET /api/v1/pdf/:id',
-      'GET /api/v1'
+      'GET /api/v1',
+      'GET /api/v1/auth/google/login',
+      'GET /api/v1/auth/google/callback',
+      'GET /api/v1/auth/google/status',
+      'POST /api/v1/auth/google/refresh',
+      'DELETE /api/v1/auth/google/disconnect',
+      'GET /api/v1/auth/google/test'
     ]
   });
 });
@@ -127,4 +136,4 @@ async function build() {
 }
 
 export { build };
-export default app; 
+export default app;

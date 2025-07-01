@@ -137,7 +137,7 @@
             "id": 1,
             "title": "Configure Google Slides OAuth2 Application and Environment Variables",
             "description": "Register the application in the Google Cloud Console to obtain OAuth2 credentials (client ID and secret). Set up all required environment variables in the Fastify backend, including client ID, client secret, and redirect URI, following secure storage best practices.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "Follow Google's official process to create an OAuth2 app in the Google Cloud Console, enabling the Google Slides API and Drive API. Specify the correct redirect URI and required scopes (`https://www.googleapis.com/auth/presentations`, `https://www.googleapis.com/auth/drive.readonly`). Store credentials securely using environment variables and ensure they are not exposed in source control.",
             "testStrategy": "Verify that environment variables are loaded correctly and that sensitive values are not present in logs or public files."
@@ -146,7 +146,7 @@
             "id": 2,
             "title": "Implement OAuth2 Client and Authentication Flow Handlers",
             "description": "Set up the OAuth2 client in the Fastify backend using the googleapis library. Implement route handlers for initiating the OAuth2 authorization flow and handling the callback to exchange the authorization code for tokens.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               1
             ],
@@ -157,7 +157,7 @@
             "id": 3,
             "title": "Develop Secure Token Storage and Refresh Logic",
             "description": "Implement secure storage of Google OAuth access and refresh tokens in the backend, associated with the authenticated user. Add logic to refresh tokens automatically when expired and handle token errors gracefully.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               2
             ],
@@ -168,7 +168,7 @@
             "id": 4,
             "title": "Set Up Google Slides API Client with Authenticated Requests",
             "description": "Create a reusable Google Slides API client using the googleapis library, configured to include the user's access token in all requests. Ensure the client is compatible with Fastify and supports error handling for authentication failures.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               3
             ],
@@ -321,11 +321,24 @@
         "details": "1. Implement a feature flag system using LaunchDarkly or a similar service.\n2. Create an A/B test management interface in the admin dashboard.\n3. Implement tracking for A/B test metrics.\n4. Set up statistical analysis for test results.\n5. Create a reporting system for A/B test outcomes.\n\nA/B testing flow:\n1. Define test variants (e.g., different AI prompts, UI layouts).\n2. Assign users to test groups.\n3. Track relevant metrics for each variant.\n4. Analyze results to determine the better-performing variant.\n5. Implement the winning variant for all users.\n\nExample A/B test setup:\n```javascript\nconst LaunchDarkly = require('launchdarkly-node-server-sdk');\n\nconst ldClient = LaunchDarkly.init('YOUR_SDK_KEY');\n\nasync function getContentVariant(userId) {\n  await ldClient.waitForInitialization();\n  const user = { key: userId };\n  const showNewContent = await ldClient.variation('new-content-test', user, false);\n  \n  if (showNewContent) {\n    return generateNewContentVersion();\n  } else {\n    return generateOldContentVersion();\n  }\n}\n```",
         "testStrategy": "1. Verify that feature flags are working correctly.\n2. Test user assignment to different test groups.\n3. Validate metric tracking for each test variant.\n4. Test the statistical analysis functions with mock data.\n5. Verify that A/B test reports are generated correctly.\n6. Perform end-to-end testing of the A/B testing workflow.\n7. Ensure that A/B tests do not negatively impact system performance.",
         "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Fix OCR Documentation and Postman Collection JavaScript Error",
+        "description": "Resolve JavaScript testing errors in the Postman collection and improve API documentation clarity for the PDF ingestion service's OCR functionality.",
+        "details": "1. Fix the 'SyntaxError: Identifier responseTime has already been declared' in Postman collection test scripts:\n   - Identify all instances where responseTime variable is declared multiple times\n   - Refactor test scripts to use a single declaration or use unique variable names\n   - Update all affected test scripts in the Postman collection\n\n2. Update OCR endpoint documentation to clarify field name flexibility:\n   - Explicitly document that there is ONE OCR endpoint that accepts multiple field names\n   - Update API documentation to show that both 'image' and 'file' field names are supported\n   - Add examples showing both field name options in the documentation\n   - Include code samples demonstrating both approaches\n\n3. Enhance the API Testing Guide:\n   - Add a dedicated section on field name flexibility\n   - Include comprehensive examples of different request formats\n   - Document expected responses for each request type\n   - Add troubleshooting section for common errors\n\n4. Improve Postman collection usability:\n   - Update request names to be more descriptive and intuitive\n   - Add detailed descriptions to each request explaining its purpose\n   - Include example payloads for each request type\n   - Organize requests logically within the collection\n\n5. Test all changes to ensure they work as expected and improve developer experience.\n\nKey considerations:\n- Maintain backward compatibility with existing client implementations\n- Ensure documentation accurately reflects the API's smart design of accepting multiple field names\n- Focus on clarity and ease of understanding for new developers",
+        "testStrategy": "1. Verify JavaScript error resolution:\n   - Run all Postman collection tests to confirm the 'SyntaxError: Identifier responseTime has already been declared' is resolved\n   - Ensure all tests pass successfully with the updated scripts\n   - Verify there are no new JavaScript errors introduced\n\n2. Test OCR endpoint with different field names:\n   - Submit requests using 'image' field name and verify successful processing\n   - Submit requests using 'file' field name and verify successful processing\n   - Confirm both approaches return identical responses for the same input\n\n3. Documentation validation:\n   - Review updated API documentation with team members not familiar with the OCR functionality\n   - Collect feedback on clarity and comprehensiveness\n   - Verify all examples and code samples work as documented\n   - Ensure the documentation accurately reflects the implementation\n\n4. Postman collection usability testing:\n   - Have developers unfamiliar with the API attempt to use the updated Postman collection\n   - Observe their experience and collect feedback\n   - Verify that request names and descriptions improve understanding\n   - Confirm that the collection organization is logical and intuitive\n\n5. Regression testing:\n   - Verify that all existing functionality continues to work correctly\n   - Test with various PDF types and sizes to ensure processing still works\n   - Confirm that any client applications using the API continue to function properly",
+        "status": "done",
+        "dependencies": [
+          2
+        ],
+        "priority": "medium",
+        "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-25T22:08:50.599Z",
-      "updated": "2025-06-27T04:59:41.198Z",
+      "updated": "2025-07-01T04:06:07.592Z",
       "description": "Tasks for master context"
     }
   }

@@ -78,13 +78,28 @@ CREATE TABLE IF NOT EXISTS content_outlines (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create figma_templates table for Figma integration
-CREATE TABLE IF NOT EXISTS figma_templates (
+-- Create user_oauth_tokens table for OAuth integrations
+CREATE TABLE IF NOT EXISTS user_oauth_tokens (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(50) NOT NULL, -- 'google', 'figma', etc.
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    token_type VARCHAR(50) DEFAULT 'Bearer',
+    scope TEXT,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, provider)
+);
+
+-- Create google_slides_templates table for Google Slides integration
+CREATE TABLE IF NOT EXISTS google_slides_templates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     merchant_id UUID REFERENCES merchants(id) ON DELETE CASCADE,
     outline_id UUID REFERENCES content_outlines(id) ON DELETE CASCADE,
-    figma_file_id VARCHAR(255),
-    figma_file_url VARCHAR(500),
+    slides_file_id VARCHAR(255),
+    slides_file_url VARCHAR(500),
     template_name VARCHAR(255),
     slide_count INTEGER,
     status VARCHAR(50) DEFAULT 'pending',
@@ -98,8 +113,10 @@ CREATE INDEX IF NOT EXISTS idx_pitch_decks_merchant_id ON pitch_decks(merchant_i
 CREATE INDEX IF NOT EXISTS idx_content_chunks_pitch_deck_id ON content_chunks(pitch_deck_id);
 CREATE INDEX IF NOT EXISTS idx_content_chunks_vector_id ON content_chunks(vector_id);
 CREATE INDEX IF NOT EXISTS idx_content_outlines_merchant_id ON content_outlines(merchant_id);
-CREATE INDEX IF NOT EXISTS idx_figma_templates_merchant_id ON figma_templates(merchant_id);
-CREATE INDEX IF NOT EXISTS idx_figma_templates_outline_id ON figma_templates(outline_id);
+CREATE INDEX IF NOT EXISTS idx_user_oauth_tokens_user_id ON user_oauth_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_oauth_tokens_provider ON user_oauth_tokens(provider);
+CREATE INDEX IF NOT EXISTS idx_google_slides_templates_merchant_id ON google_slides_templates(merchant_id);
+CREATE INDEX IF NOT EXISTS idx_google_slides_templates_outline_id ON google_slides_templates(outline_id);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -126,4 +143,4 @@ INSERT INTO users (email, password_hash, first_name, last_name, company, role) V
 ON CONFLICT (email) DO NOTHING;
 
 -- Success message
-SELECT 'DeckCraft AI database initialized successfully!' as status; 
+SELECT 'DeckCraft AI database initialized successfully!' as status;

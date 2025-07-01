@@ -472,6 +472,302 @@
       ]
     },
     {
+      "name": "Google OAuth Authentication",
+      "description": "Google Slides OAuth2 integration endpoints for authentication and authorization",
+      "item": [
+        {
+          "name": "Start OAuth Flow",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "login"]
+            },
+            "description": "Initiate Google OAuth2 flow for Google Slides integration. Returns authorization URL that user should visit in browser to grant permissions."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains auth URL', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('authUrl');",
+                  "    pm.expect(responseJson.authUrl).to.include('accounts.google.com');",
+                  "});",
+                  "",
+                  "pm.test('Auth URL contains required parameters', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const authUrl = responseJson.authUrl;",
+                  "    pm.expect(authUrl).to.include('scope=');",
+                  "    pm.expect(authUrl).to.include('state=');",
+                  "    pm.expect(authUrl).to.include('client_id=');",
+                  "    pm.expect(authUrl).to.include('redirect_uri=');",
+                  "});",
+                  "",
+                  "console.log('🔐 Copy this URL to browser to complete OAuth:');",
+                  "console.log(pm.response.json().authUrl);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Authentication Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "status"]
+            },
+            "description": "Check if user is authenticated with Google and retrieve user profile information if available."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates authentication status', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('authenticated');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "});",
+                  "",
+                  "pm.test('If authenticated, user data is provided', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.authenticated === true) {",
+                  "        pm.expect(responseJson).to.have.property('user');",
+                  "        pm.expect(responseJson.user).to.have.property('id');",
+                  "        pm.expect(responseJson).to.have.property('providers');",
+                  "        console.log('✅ User authenticated:', responseJson.user);",
+                  "    } else {",
+                  "        console.log('❌ User not authenticated');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Test Google Slides API Access",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "test"]
+            },
+            "description": "Test Google Slides API access by fetching available templates from Google Drive. Requires user to be authenticated first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('API access working', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "        pm.expect(responseJson).to.have.property('templatesFound');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Templates data is provided', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('templates');",
+                  "        pm.expect(responseJson.templates).to.be.an('array');",
+                  "        console.log(`📋 Found ${responseJson.templatesFound} templates`);",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    pm.test('Not authenticated error is correct', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        pm.expect(responseJson.error).to.include('not authenticated');",
+                  "        console.log('❌ User not authenticated - complete OAuth flow first');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh Access Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "refresh"]
+            },
+            "description": "Refresh expired Google access token using stored refresh token. Required when access token expires."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Token refresh successful', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "        pm.expect(responseJson.message).to.include('refreshed');",
+                  "    });",
+                  "    ",
+                  "    pm.test('New expiration provided', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('expires_at');",
+                  "        console.log('🔄 Token refreshed, expires:', responseJson.expires_at);",
+                  "    });",
+                  "} else if (pm.response.code === 404) {",
+                  "    pm.test('No refresh token error is correct', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        pm.expect(responseJson.error).to.include('refresh token');",
+                  "        console.log('❌ No refresh token found - re-authenticate required');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Disconnect Google Authentication",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/disconnect",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "disconnect"]
+            },
+            "description": "Revoke Google authentication and delete stored tokens. User will need to re-authenticate to access Google Slides again."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Disconnect successful', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.message).to.include('disconnected');",
+                  "});",
+                  "",
+                  "console.log('🔓 Google authentication disconnected successfully');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "OAuth Callback (Manual Test)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/auth/google/callback?state=MANUAL_TEST_STATE&code=MANUAL_TEST_CODE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "auth", "google", "callback"],
+              "query": [
+                {
+                  "key": "state",
+                  "value": "MANUAL_TEST_STATE",
+                  "description": "OAuth state parameter (replace with real value from auth flow)"
+                },
+                {
+                  "key": "code",
+                  "value": "MANUAL_TEST_CODE",
+                  "description": "OAuth authorization code (replace with real value from Google)"
+                }
+              ]
+            },
+            "description": "⚠️ IMPORTANT: This endpoint cannot be tested with fake values! It requires real OAuth state/code from Google. This endpoint is automatically called by Google during OAuth flow. To test: 1) Use 'Start OAuth Flow' endpoint 2) Complete OAuth in browser 3) Watch server logs for callback execution. This Postman request is for documentation and error testing only."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Expected error for manual test', function () {",
+                  "    // This test should fail with invalid state/code",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 500]);",
+                  "});",
+                  "",
+                  "pm.test('Error response format is correct', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', false);",
+                  "    pm.expect(responseJson).to.have.property('error');",
+                  "});",
+                  "",
+                  "console.log('⚠️  This endpoint is called automatically by Google during OAuth flow.');",
+                  "console.log('   Do not run manually - use the \"Start OAuth Flow\" endpoint instead.');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Content Generation (Placeholders)",
       "description": "AI content generation endpoints (coming soon)",
       "item": [
