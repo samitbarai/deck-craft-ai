@@ -1,0 +1,107 @@
+schema slide_chunk {
+    document slide_chunk {
+        field id type string {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+        
+        field content type string {
+            indexing: index | summary
+            index: enable-bm25
+        }
+        
+        field embedding type tensor<float>(x[768]) {
+            indexing: attribute | summary
+            attribute {
+                distance-metric: dotproduct
+            }
+        }
+        
+        field chunk_index type int {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+        
+        field source_file type string {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+        
+        field file_type type string {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+        
+        field created_at type long {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+        
+        field metadata type string {
+            indexing: summary | attribute
+        }
+        
+        field chunk_size type int {
+            indexing: summary | attribute
+        }
+        
+        field slide_number type int {
+            indexing: summary | attribute
+            attribute: fast-search
+        }
+    }
+    
+    fieldset default {
+        fields: content
+    }
+    
+    rank-profile vector_similarity inherits default {
+        inputs {
+            query(query_embedding) tensor<float>(x[768])
+        }
+        
+        first-phase {
+            expression: closeness(field, embedding)
+        }
+        
+        summary-features {
+            closeness(field, embedding)
+            attribute(chunk_index)
+            attribute(source_file)
+            attribute(slide_number)
+        }
+    }
+    
+    rank-profile hybrid_search inherits default {
+        inputs {
+            query(query_embedding) tensor<float>(x[768])
+            query(text_weight) double
+            query(vector_weight) double
+        }
+        
+        first-phase {
+            expression: query(text_weight) * bm25(content) + query(vector_weight) * closeness(field, embedding)
+        }
+        
+        summary-features {
+            bm25(content)
+            closeness(field, embedding)
+            attribute(chunk_index)
+            attribute(source_file)
+            attribute(slide_number)
+        }
+    }
+    
+    rank-profile text_search inherits default {
+        first-phase {
+            expression: bm25(content)
+        }
+        
+        summary-features {
+            bm25(content)
+            attribute(chunk_index)
+            attribute(source_file)
+            attribute(slide_number)
+        }
+    }
+}

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<services version="1.0">
+    
+    <!-- Admin cluster for managing the application -->
+    <admin version="2.0">
+        <adminserver hostalias="node1" />
+        <logserver hostalias="node1" />
+    </admin>
+    
+    <!-- Content cluster for storing and indexing documents -->
+    <content id="slide_chunks" version="1.0">
+        <redundancy>1</redundancy>
+        <documents>
+            <document type="slide_chunk" mode="index" />
+        </documents>
+        <nodes>
+            <node hostalias="node1" distribution-key="0" />
+        </nodes>
+    </content>
+    
+    <!-- Container cluster for query processing -->
+    <container id="default" version="1.0">
+        <search />
+        <document-api />
+        
+        <!-- HTTP handlers -->
+        <http>
+            <server id="default" port="8080" />
+        </http>
+        
+        <nodes>
+            <node hostalias="node1" />
+        </nodes>
+    </container>
+    
+</services>
