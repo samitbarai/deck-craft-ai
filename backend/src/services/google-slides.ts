@@ -37,10 +37,24 @@ export interface TextElement {
   objectId: string;
 }
 
+export interface ImageElement {
+  index: number;
+  objectId: string;
+  imageUrl?: string;
+  sourceUrl?: string;
+  size: 'small' | 'medium' | 'large';
+  dimensions?: {
+    width: number;
+    height: number;
+  };
+  altText?: string;
+}
+
 export interface SlideContentData {
   slideId: string;
   index: number;
   textElements: TextElement[];
+  imageElements: ImageElement[];
 }
 
 export interface PresentationContentResponse {
@@ -417,16 +431,43 @@ export class GoogleSlidesService {
     return 'small';
   }
 
+  // Helper method to categorize image element size
+  private categorizeImageSize(element: any): 'small' | 'medium' | 'large' {
+    const area = (element.size?.width?.magnitude || 0) * (element.size?.height?.magnitude || 0);
+    
+    if (area > 80000) return 'large';
+    if (area > 25000) return 'medium';
+    return 'small';
+  }
+
+  // Helper method to extract image information from an image element
+  private extractImageInfo(element: any): Omit<ImageElement, 'index'> {
+    const imageProps = element.image?.imageProperties;
+    const size = element.size;
+    
+    return {
+      objectId: element.objectId || '',
+      imageUrl: imageProps?.contentUrl || undefined,
+      sourceUrl: imageProps?.sourceUrl || undefined,
+      size: this.categorizeImageSize(element),
+      dimensions: size ? {
+        width: Math.round(size.width?.magnitude || 0),
+        height: Math.round(size.height?.magnitude || 0)
+      } : undefined,
+      altText: element.description || undefined
+    };
+  }
+
   // Get all slide content from a presentation
   async getPresentationContent(userId: string, presentationId: string): Promise<PresentationContentResponse> {
     const auth = await this.getAuthenticatedClient(userId);
     const slides = google.slides({ version: 'v1', auth });
 
     try {
-      // Get presentation with full slide content
+      // Get presentation with full slide content including images
       const presentation = await slides.presentations.get({
         presentationId,
-        fields: 'presentationId,title,slides.objectId,slides.pageElements.shape.text,slides.pageElements.objectId,slides.pageElements.size'
+        fields: 'presentationId,title,slides.objectId,slides.pageElements.shape.text,slides.pageElements.image,slides.pageElements.image.imageProperties,slides.pageElements.objectId,slides.pageElements.size,slides.pageElements.description'
       });
 
       if (!presentation.data.slides) {
@@ -437,6 +478,7 @@ export class GoogleSlidesService {
 
       // Process each slide
       presentation.data.slides.forEach((slide, slideIndex) => {
+        // Process text elements
         const textElements = slide.pageElements?.filter(element => 
           element.shape?.text?.textElements && element.objectId
         ) || [];
@@ -456,10 +498,29 @@ export class GoogleSlidesService {
           objectId: element.objectId || ''
         })).filter(textEl => textEl.text.length > 0); // Only include elements with actual text
 
+        // Process image elements
+        const imageElements = slide.pageElements?.filter(element => 
+          element.image && element.objectId
+        ) || [];
+
+        // Sort image elements by size (larger first)
+        imageElements.sort((a, b) => {
+          const aSize = (a.size?.width?.magnitude || 0) * (a.size?.height?.magnitude || 0);
+          const bSize = (b.size?.width?.magnitude || 0) * (b.size?.height?.magnitude || 0);
+          return bSize - aSize;
+        });
+
+        // Extract image content with metadata
+        const imageElementsData: ImageElement[] = imageElements.map((element, index) => ({
+          index,
+          ...this.extractImageInfo(element)
+        }));
+
         slideContentData.push({
           slideId: slide.objectId || '',
           index: slideIndex,
-          textElements: textElementsData
+          textElements: textElementsData,
+          imageElements: imageElementsData
         });
       });
 
