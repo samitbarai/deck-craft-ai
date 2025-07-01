@@ -38,20 +38,23 @@ export class PDFStorageService {
     });
   }
 
-  async storePitchDeckWithContent(pitchDeckData: PitchDeckData, content: string) {
+  async storePitchDeckWithContent(pitchDeckData: PitchDeckData, pages: string[]) {
     const pitchDeck = await this.storePitchDeck(pitchDeckData);
 
-    // Sanitize the content to remove null characters
-    const sanitizedContent = content.replace(/\u0000/g, '');
+    for (let i = 0; i < pages.length; i++) {
+      const content = pages[i];
+      // Sanitize the content to remove null characters
+      const sanitizedContent = content.replace(/\u0000/g, '');
 
-    const contentChunkData: ContentChunkData = {
-      pitch_deck_id: pitchDeck.id,
-      page_number: 1, // Assuming content is for the whole document for now
-      chunk_type: 'text',
-      content: sanitizedContent,
-    };
+      const contentChunkData: ContentChunkData = {
+        pitch_deck_id: pitchDeck.id,
+        page_number: i + 1,
+        chunk_type: 'text',
+        content: sanitizedContent,
+      };
 
-    await this.storeContentChunk(contentChunkData);
+      await this.storeContentChunk(contentChunkData);
+    }
 
     return pitchDeck;
   }

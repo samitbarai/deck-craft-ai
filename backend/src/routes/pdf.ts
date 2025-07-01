@@ -48,6 +48,7 @@ interface PDFResult {
   id: string;
   filename: string;
   text: string;
+  pages: string[];
   images: string[];
   ocrText: string;
   metadata: {
@@ -110,11 +111,13 @@ class PDFProcessor {
       }
 
       const processingTime = Date.now() - startTime;
+      const pages = this.splitTextIntoPages(extractedText, pageCount);
 
       return {
         id,
         filename,
         text: extractedText.trim(),
+        pages,
         images: extractedImages,
         ocrText: ocrText.trim(),
         metadata: {
@@ -123,8 +126,8 @@ class PDFProcessor {
           pageCount,
           fileSize: buffer.length,
           extractedAt,
-          processingTime
-        }
+          processingTime,
+        },
       };
 
     } catch (error) {
@@ -485,7 +488,7 @@ export default async function pdfRoutes(fastify: FastifyInstance) {
           mime_type: data.mimetype,
           page_count: result.metadata.pageCount,
         },
-        result.text
+        result.pages
       );
 
       return reply.status(200).send({
