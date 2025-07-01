@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import PDF from 'pdf-parse';
+import { pdfStorageService } from '../services/pdf-storage.service';
 import { createWorker } from 'tesseract.js';
 import sharp from 'sharp';
 import { randomUUID } from 'crypto';
@@ -474,15 +475,31 @@ export default async function pdfRoutes(fastify: FastifyInstance) {
       // Process the PDF
       const result = await PDFProcessor.processPDF(buffer, data.filename, metadata);
 
+      // Store the pitch deck and its content
+      const pitchDeck = await pdfStorageService.storePitchDeckWithContent(
+        {
+          // merchant_id: 'some-merchant-id', // TODO: Get from authenticated user
+          original_filename: data.filename,
+          filename: result.id, // Using the generated UUID as the filename for now
+          file_size: result.metadata.fileSize,
+          mime_type: data.mimetype,
+          page_count: result.metadata.pageCount,
+        },
+        result.text
+      );
+
       return reply.status(200).send({
         success: true,
-        message: 'PDF processed successfully',
-        data: result,
+        message: 'PDF processed and stored successfully',
+        data: {
+          ...result,
+          pitch_deck_id: pitchDeck.id,
+        },
         processing: {
           time: `${result.metadata.processingTime}ms`,
           textLength: result.text.length,
-          hasOCR: !!result.ocrText
-        }
+          hasOCR: !!result.ocrText,
+        },
       });
 
     } catch (error) {
