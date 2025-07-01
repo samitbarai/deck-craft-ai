@@ -1,0 +1,776 @@
+{
+  "info": {
+    "name": "DeckCraft AI API Collection",
+    "description": "Comprehensive API testing collection for DeckCraft AI - Modern AI-powered pitch deck analysis and content generation platform",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Checks",
+      "description": "System health monitoring endpoints",
+      "item": [
+        {
+          "name": "Basic Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Basic health check endpoint to verify server is running"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has status field', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status');",
+                  "});",
+                  "",
+                  "pm.test('Response time is less than 1000ms', function () {",
+                  "    pm.expect(pm.response.responseTime).to.be.below(1000);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Detailed Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health/detailed",
+              "host": ["{{baseUrl}}"],
+              "path": ["health", "detailed"]
+            },
+            "description": "Detailed health check with system information"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response has detailed health info', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status');",
+                  "    pm.expect(responseJson).to.have.property('services');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "API Documentation",
+      "description": "API information and documentation endpoints",
+      "item": [
+        {
+          "name": "Get API Information",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", ""]
+            },
+            "description": "Get comprehensive API documentation and endpoint information"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response contains API information', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('name');",
+                  "    pm.expect(responseJson).to.have.property('version');",
+                  "    pm.expect(responseJson).to.have.property('endpoints');",
+                  "    pm.expect(responseJson).to.have.property('features');",
+                  "});",
+                  "",
+                  "pm.test('API name is DeckCraft AI API', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.name).to.eql('DeckCraft AI API');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PDF Processing",
+      "description": "PDF upload, processing, and OCR endpoints",
+      "item": [
+        {
+          "name": "Single PDF Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "pdf",
+                  "type": "file",
+                  "src": [],
+                  "description": "PDF file to upload (max 100MB)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/upload?industry={{industry}}&geography={{geography}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "upload"],
+              "query": [
+                {
+                  "key": "industry",
+                  "value": "{{industry}}",
+                  "description": "Industry sector (e.g., technology, healthcare, finance)"
+                },
+                {
+                  "key": "geography",
+                  "value": "{{geography}}",
+                  "description": "Geographic region (e.g., US, Europe, Asia)"
+                }
+              ]
+            },
+            "description": "Upload a single PDF file for text extraction and processing"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Response contains PDF processing data', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('id');",
+                  "    pm.expect(data).to.have.property('filename');",
+                  "    pm.expect(data).to.have.property('text');",
+                  "    pm.expect(data).to.have.property('metadata');",
+                  "});",
+                  "",
+                  "pm.test('Processing time is recorded', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('processing');",
+                  "    pm.expect(responseJson.processing).to.have.property('time');",
+                  "});",
+                  "",
+                  "// Store the PDF ID for other tests",
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.environment.set('lastPdfId', responseJson.data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Batch PDF Upload",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "pdfs",
+                  "type": "file",
+                  "src": [],
+                  "description": "Multiple PDF files (max 10 files, 100MB each)"
+                },
+                {
+                  "key": "pdfs",
+                  "type": "file",
+                  "src": [],
+                  "description": "Additional PDF file"
+                },
+                {
+                  "key": "industry",
+                  "value": "{{industry}}",
+                  "type": "text",
+                  "description": "Industry metadata for all files"
+                },
+                {
+                  "key": "geography",
+                  "value": "{{geography}}",
+                  "type": "text",
+                  "description": "Geography metadata for all files"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/batch",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "batch"]
+            },
+            "description": "Upload multiple PDF files for batch processing (max 10 files)"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Batch processing summary is provided', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('summary');",
+                  "    pm.expect(data.summary).to.have.property('total');",
+                  "    pm.expect(data.summary).to.have.property('successful');",
+                  "    pm.expect(data.summary).to.have.property('failed');",
+                  "});",
+                  "",
+                  "pm.test('Successful files have required properties', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const successful = responseJson.data.successful;",
+                  "    if (successful && successful.length > 0) {",
+                  "        successful.forEach(file => {",
+                  "            pm.expect(file).to.have.property('id');",
+                  "            pm.expect(file).to.have.property('filename');",
+                  "            pm.expect(file).to.have.property('text');",
+                  "        });",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary OCR Endpoint (using 'image' field)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Image file (jpg, png, gif, etc.) OR PDF file for comprehensive OCR text extraction. OPTIMIZED for presentation slides with mixed text and images. Uses 'image' field name."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/ocr",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "ocr"]
+            },
+            "description": "PRIMARY OCR ENDPOINT: Extract text from image files OR PDF files using enhanced pdf2pic + Tesseract.js processing. This endpoint accepts files with field name 'image' - ideal for image-specific uploads or when semantic clarity is preferred. OPTIMIZED FOR PRESENTATION SLIDES: Step 1: Converts PDF pages to high-quality PNG images using pdf2pic (buffer-based processing). Step 2: Uses Tesseract PSM 11 (sparse text) perfect for slide layouts. Step 3: Extracts text from charts/diagrams/embedded images. Step 4: Combines regular PDF text + OCR results intelligently."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('OCR data contains required fields', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('filename');",
+                  "    pm.expect(data).to.have.property('text');",
+                  "    pm.expect(data).to.have.property('processingTime');",
+                  "    pm.expect(data).to.have.property('textLength');",
+                  "    pm.expect(data).to.have.property('type');",
+                  "});",
+                  "",
+                  "pm.test('Response type is either image or pdf', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const type = responseJson.data.type;",
+                  "    pm.expect(['image', 'pdf']).to.include(type);",
+                  "});",
+                  "",
+                  "pm.test('PDF responses have page data', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    if (data.type === 'pdf') {",
+                  "        pm.expect(data).to.have.property('totalPages');",
+                  "        pm.expect(data).to.have.property('pages');",
+                  "        pm.expect(data).to.have.property('averageTimePerPage');",
+                  "        pm.expect(data.pages).to.be.an('array');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Alternative OCR Endpoint (using 'file' field)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Alternative field name: Use 'file' instead of 'image' for uploading PDFs or images. Ideal for generic file uploads or when using standard HTML form fields."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/ocr",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "ocr"]
+            },
+            "description": "ALTERNATIVE FIELD NAME: Same OCR endpoint but using 'file' field name instead of 'image'. This demonstrates the API's flexibility in accepting different field names for the same functionality. Useful for generic file uploads, standard HTML forms, or when integrating with systems that expect 'file' as the field name. Functionality is identical to the 'image' field version."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates success', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test('Field name flexibility works correctly', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('filename');",
+                  "    pm.expect(data).to.have.property('text');",
+                  "    pm.expect(data).to.have.property('type');",
+                  "});",
+                  "",
+                  "// Use different variable name to avoid conflict with global responseTime",
+                  "const ocrProcessingTime = pm.response.responseTime;",
+                  "pm.test('OCR processing time is reasonable', function () {",
+                  "    pm.expect(ocrProcessingTime).to.be.below(30000); // 30 seconds max",
+                  "});",
+                  "",
+                  "console.log(`OCR processing time (file field): ${ocrProcessingTime}ms`);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PDF Service Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "health"]
+            },
+            "description": "Check health status of PDF processing services"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('PDF services are healthy', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status', 'healthy');",
+                  "    pm.expect(responseJson).to.have.property('services');",
+                  "});",
+                  "",
+                  "pm.test('Required services are available', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const services = responseJson.services;",
+                  "    pm.expect(services).to.have.property('pdf-parse');",
+                  "    pm.expect(services).to.have.property('ocr');",
+                  "    pm.expect(services).to.have.property('sharp');",
+                  "});",
+                  "",
+                  "pm.test('Capabilities are listed', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('capabilities');",
+                  "    pm.expect(responseJson.capabilities).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Content Generation (Placeholders)",
+      "description": "AI content generation endpoints (coming soon)",
+      "item": [
+        {
+          "name": "Generate Outline",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"industry\": \"{{industry}}\",\n  \"geography\": \"{{geography}}\",\n  \"context\": \"Sample pitch deck outline request\",\n  \"sections\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/generate/outline",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "generate", "outline"]
+            },
+            "description": "Generate pitch deck outline based on merchant context (placeholder endpoint)"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 501 (Not Implemented)', function () {",
+                  "    pm.response.to.have.status(501);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates coming soon', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status', 'not_implemented');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate Content",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outline\": {\n    \"sections\": [\n      {\n        \"title\": \"Problem Statement\",\n        \"themes\": [\"Market pain points\", \"Current solutions\"]\n      },\n      {\n        \"title\": \"Solution\",\n        \"themes\": [\"Our approach\", \"Key benefits\"]\n      }\n    ]\n  },\n  \"industry\": \"{{industry}}\",\n  \"geography\": \"{{geography}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/generate/content",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "generate", "content"]
+            },
+            "description": "Generate detailed content for each slide (placeholder endpoint)"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 501 (Not Implemented)', function () {",
+                  "    pm.response.to.have.status(501);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates coming soon', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status', 'not_implemented');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate Full Deck",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"outline\": {\n    \"title\": \"Sample Pitch Deck\",\n    \"sections\": [\n      {\n        \"title\": \"Problem\",\n        \"content\": \"Detailed problem description\"\n      },\n      {\n        \"title\": \"Solution\",\n        \"content\": \"Our innovative solution\"\n      }\n    ]\n  },\n  \"assets\": [\n    {\n      \"id\": \"asset_1\",\n      \"type\": \"image\",\n      \"url\": \"https://example.com/image.jpg\"\n    }\n  ],\n  \"template\": \"modern_pitch_deck\",\n  \"industry\": \"{{industry}}\",\n  \"geography\": \"{{geography}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/generate/deck",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "generate", "deck"]
+            },
+            "description": "Generate complete Google Slides presentation (placeholder endpoint)"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 501 (Not Implemented)', function () {",
+                  "    pm.response.to.have.status(501);",
+                  "});",
+                  "",
+                  "pm.test('Response indicates coming soon', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('status', 'not_implemented');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Error Testing",
+      "description": "Test error handling and edge cases",
+      "item": [
+        {
+          "name": "PDF Upload - No File",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "upload"]
+            },
+            "description": "Test error handling when no file is provided"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Error message is provided', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('error', true);",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PDF Upload - Wrong Field Name",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "wrongfield",
+                  "type": "file",
+                  "src": [],
+                  "description": "File with wrong field name"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/pdf/upload",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "pdf", "upload"]
+            },
+            "description": "Test error handling when wrong field name is used"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (Bad Request)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Field name error is reported', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('error', true);",
+                  "    pm.expect(responseJson.message).to.include('Expected field name');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Set default environment variables if not set",
+          "if (!pm.environment.get('baseUrl')) {",
+          "    pm.environment.set('baseUrl', 'http://localhost:8000');",
+          "}",
+          "",
+          "if (!pm.environment.get('apiVersion')) {",
+          "    pm.environment.set('apiVersion', 'v1');",
+          "}",
+          "",
+          "if (!pm.environment.get('industry')) {",
+          "    pm.environment.set('industry', 'technology');",
+          "}",
+          "",
+          "if (!pm.environment.get('geography')) {",
+          "    pm.environment.set('geography', 'United States');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test to check response format",
+          "pm.test('Response is JSON', function () {",
+          "    pm.response.to.be.json;",
+          "});",
+          "",
+          "// Log response time for performance monitoring",
+          "const responseTime = pm.response.responseTime;",
+          "console.log(`Response time: ${responseTime}ms`);",
+          "",
+          "// Set performance warning threshold",
+          "if (responseTime > 5000) {",
+          "    console.warn(`Slow response detected: ${responseTime}ms`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "apiVersion",
+      "value": "v1",
+      "type": "string"
+    },
+    {
+      "key": "industry",
+      "value": "technology",
+      "type": "string"
+    },
+    {
+      "key": "geography",
+      "value": "United States",
+      "type": "string"
+    }
+  ]
+}
