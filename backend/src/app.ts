@@ -13,6 +13,7 @@ import healthRoutes from './routes/health';
 import pdfRoutes from './routes/pdf';
 import apiRoutes from './routes/api';
 import googleAuthRoutes from './routes/google-auth';
+import slidesRoutes from './routes/slides';
 
 // Create Fastify app
 const app: FastifyInstance = Fastify({
@@ -67,6 +68,7 @@ async function registerRoutes() {
   await app.register(pdfRoutes, { prefix: '/api/v1/pdf' });
   await app.register(apiRoutes, { prefix: '/api/v1' });
   await app.register(googleAuthRoutes, { prefix: '/api/v1/auth/google' });
+  await app.register(slidesRoutes, { prefix: '/api/v1/slides' });
 }
 
 // Root route
@@ -80,6 +82,7 @@ app.get('/', async (request, reply) => {
       api: '/api/v1',
       pdf: '/api/v1/pdf',
       auth: '/api/v1/auth/google',
+      slides: '/api/v1/slides',
       docs: '/api/v1/docs'
     },
     features: ['PDF Ingestion', 'Text Extraction', 'OCR Processing', 'Metadata Tagging', 'Google Slides Integration']
@@ -118,7 +121,13 @@ app.setNotFoundHandler(async (request, reply) => {
       'GET /api/v1/auth/google/status',
       'POST /api/v1/auth/google/refresh',
       'DELETE /api/v1/auth/google/disconnect',
-      'GET /api/v1/auth/google/test'
+      'GET /api/v1/auth/google/test',
+      'GET /api/v1/slides/templates',
+      'POST /api/v1/slides/presentations',
+      'GET /api/v1/slides/presentations/:id',
+      'PUT /api/v1/slides/presentations/:id',
+      'POST /api/v1/slides/presentations/:id/slides',
+      'GET /api/v1/slides/auth/status'
     ]
   });
 });

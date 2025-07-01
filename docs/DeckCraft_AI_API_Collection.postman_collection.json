@@ -768,6 +768,772 @@
       ]
     },
     {
+      "name": "Google Slides Management",
+      "description": "Google Slides template management and presentation creation endpoints",
+      "item": [
+        {
+          "name": "Get Available Templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/templates?userId={{testUserId}}&folderId={{templateFolderId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "templates"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{testUserId}}",
+                  "description": "User ID for authentication (required)"
+                },
+                {
+                  "key": "folderId",
+                  "value": "{{templateFolderId}}",
+                  "description": "Optional Google Drive folder ID to filter templates",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Fetch available Google Slides templates from user's Google Drive. Requires user to be authenticated with Google first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Templates response is valid', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('templates');",
+                  "        pm.expect(responseJson).to.have.property('count');",
+                  "        pm.expect(responseJson.templates).to.be.an('array');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Template objects have required properties', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        if (responseJson.templates.length > 0) {",
+                  "            const template = responseJson.templates[0];",
+                  "            pm.expect(template).to.have.property('id');",
+                  "            pm.expect(template).to.have.property('name');",
+                  "            pm.expect(template).to.have.property('slideCount');",
+                  "            ",
+                  "            // Store first template ID for other tests",
+                  "            pm.environment.set('testTemplateId', template.id);",
+                  "            console.log(`📋 Found ${responseJson.count} templates, using ${template.name} for tests`);",
+                  "        }",
+                  "    });",
+                  "} else if (pm.response.code === 401) {",
+                  "    pm.test('Authentication required error is correct', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        pm.expect(responseJson).to.have.property('code', 'AUTHENTICATION_REQUIRED');",
+                  "        console.log('❌ User authentication required - complete OAuth flow first');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Presentation from Template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"{{testTemplateId}}\",\n  \"title\": \"Test Presentation from Template - {{$timestamp}}\",\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations"]
+            },
+            "description": "Create a new Google Slides presentation from an existing template. Requires templateId from the templates endpoint."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Presentation created successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Presentation object is valid', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        const presentation = responseJson.presentation;",
+                  "        pm.expect(presentation).to.have.property('id');",
+                  "        pm.expect(presentation).to.have.property('title');",
+                  "        pm.expect(presentation).to.have.property('url');",
+                  "        pm.expect(presentation).to.have.property('slideCount');",
+                  "        ",
+                  "        // Store presentation ID for other tests",
+                  "        pm.environment.set('testPresentationId', presentation.id);",
+                  "        console.log(`✅ Created presentation: ${presentation.title}`);",
+                  "        console.log(`🔗 View at: ${presentation.url}`);",
+                  "    });",
+                  "} else {",
+                  "    pm.test('Error response is properly formatted', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        pm.expect(responseJson).to.have.property('error');",
+                  "        console.log('❌ Error:', responseJson.error);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Blank Presentation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Blank Test Presentation - {{$timestamp}}\",\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations"]
+            },
+            "description": "Create a new blank Google Slides presentation without using a template."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 401', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 401]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Blank presentation created successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Blank presentation has default slide', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        const presentation = responseJson.presentation;",
+                  "        pm.expect(presentation.slideCount).to.be.at.least(1);",
+                  "        console.log(`📄 Created blank presentation with ${presentation.slideCount} slide(s)`);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Presentation Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}?userId={{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{testUserId}}",
+                  "description": "User ID for authentication (required)"
+                }
+              ]
+            },
+            "description": "Get details of a specific Google Slides presentation by ID. Requires presentation ID from create presentation endpoint. Returns basic info (title, slide count, slide IDs) but not the actual text content."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Presentation details retrieved successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Presentation details are complete', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        const presentation = responseJson.presentation;",
+                  "        pm.expect(presentation).to.have.property('id');",
+                  "        pm.expect(presentation).to.have.property('title');",
+                  "        pm.expect(presentation).to.have.property('url');",
+                  "        pm.expect(presentation).to.have.property('slideCount');",
+                  "        pm.expect(presentation).to.have.property('slides');",
+                  "        console.log(`📊 Presentation: ${presentation.title} (${presentation.slideCount} slides)`);",
+                  "        ",
+                  "        if (presentation.slides && presentation.slides.length > 0) {",
+                  "            console.log('📋 Available slide IDs:', presentation.slides.map(s => s.objectId).join(', '));",
+                  "        }",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Presentation Content (Read All Text)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}/content?userId={{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}", "content"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{testUserId}}",
+                  "description": "User ID for authentication (required)"
+                }
+              ]
+            },
+            "description": "READ ALL SLIDE CONTENT: Get the actual text content from all slides in a Google Slides presentation. Returns detailed information about each text element including position index, text content, size classification, and object ID. Perfect for content analysis, backup, or AI processing of existing presentations."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Presentation content retrieved successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "        pm.expect(responseJson).to.have.property('slides');",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Content structure is correct', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson.presentation).to.have.property('id');",
+                  "        pm.expect(responseJson.presentation).to.have.property('title');",
+                  "        pm.expect(responseJson.presentation).to.have.property('slideCount');",
+                  "        pm.expect(responseJson.slides).to.be.an('array');",
+                  "        ",
+                  "        console.log(`📖 Reading content from: ${responseJson.presentation.title}`);",
+                  "        console.log(`📄 Total slides: ${responseJson.slides.length}`);",
+                  "    });",
+                  "    ",
+                  "    pm.test('Slide content has expected structure', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        if (responseJson.slides.length > 0) {",
+                  "            const firstSlide = responseJson.slides[0];",
+                  "            pm.expect(firstSlide).to.have.property('slideId');",
+                  "            pm.expect(firstSlide).to.have.property('index');",
+                  "            pm.expect(firstSlide).to.have.property('textElements');",
+                  "            pm.expect(firstSlide.textElements).to.be.an('array');",
+                  "            ",
+                  "            if (firstSlide.textElements.length > 0) {",
+                  "                const firstTextElement = firstSlide.textElements[0];",
+                  "                pm.expect(firstTextElement).to.have.property('index');",
+                  "                pm.expect(firstTextElement).to.have.property('text');",
+                  "                pm.expect(firstTextElement).to.have.property('size');",
+                  "                pm.expect(firstTextElement).to.have.property('objectId');",
+                  "                pm.expect(['small', 'medium', 'large']).to.include(firstTextElement.size);",
+                  "                ",
+                  "                console.log(`🔤 First text element: \"${firstTextElement.text}\" (${firstTextElement.size})`);",
+                  "            }",
+                  "        }",
+                  "    });",
+                  "    ",
+                  "    pm.test('Log all slide content for review', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        responseJson.slides.forEach((slide, index) => {",
+                  "            console.log(`\\n--- Slide ${index + 1} (ID: ${slide.slideId}) ---`);",
+                  "            slide.textElements.forEach((textEl, textIndex) => {",
+                  "                console.log(`  [${textEl.index}] ${textEl.size.toUpperCase()}: \"${textEl.text}\"`);",
+                  "            });",
+                  "        });",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Presentation Content (Simple)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slideUpdates\": [\n    {\n      \"slideId\": \"p\",\n      \"title\": \"Updated Slide Title\",\n      \"content\": \"This content was updated via API at {{$timestamp}}\"\n    }\n  ],\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"]
+            },
+            "description": "SIMPLE UPDATE: Update slide content using the backward-compatible title and content fields. This updates the largest text element (title) and second largest (content). Uses real slide ID 'p' for first slide. Get real slide IDs from 'Get Presentation Details' endpoint first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Presentation updated successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "        pm.expect(responseJson).to.have.property('updatedSlides');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Update summary is provided', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson.updatedSlides).to.be.at.least(1);",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "        console.log(`✏️ Updated ${responseJson.updatedSlides} slide(s) using simple method`);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Presentation Content (Advanced Index-Based)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slideUpdates\": [\n    {\n      \"slideId\": \"p\",\n      \"title\": \"Main Headline\",\n      \"content\": \"Primary content section\",\n      \"textUpdates\": [\n        {\n          \"index\": 2,\n          \"text\": \"Footer information updated at {{$timestamp}}\"\n        },\n        {\n          \"index\": 3,\n          \"text\": \"Sidebar content or bullet points\"\n        },\n        {\n          \"index\": 4,\n          \"text\": \"Additional text section\"\n        }\n      ]\n    }\n  ],\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"]
+            },
+            "description": "ADVANCED UPDATE: Update multiple text sections using position-based indexing. Combines backward compatible fields (title, content) with new textUpdates array for precise control over all text elements. Text elements are sorted by size: index 0 = largest (title), index 1 = second largest (content), index 2+ = additional elements."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Advanced presentation update successful', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('presentation');",
+                  "        pm.expect(responseJson).to.have.property('updatedSlides');",
+                  "    });",
+                  "    ",
+                  "    pm.test('Multiple text sections updated', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson.updatedSlides).to.be.at.least(1);",
+                  "        console.log(`✏️ Updated ${responseJson.updatedSlides} slide(s) using advanced index-based method`);",
+                  "        console.log('🎯 Updated: title, content, and additional text sections');",
+                  "    });",
+                  "} else if (pm.response.code === 400) {",
+                  "    pm.test('Index out of range error handled correctly', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        if (responseJson.error && responseJson.error.includes('index')) {",
+                  "            console.log('❌ Text element index out of range - reduce index numbers');",
+                  "        }",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Content by Index Only",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slideUpdates\": [\n    {\n      \"slideId\": \"gccd1c8a2b3_0_1\",\n      \"textUpdates\": [\n        {\n          \"index\": 0,\n          \"text\": \"Title updated by index at {{$timestamp}}\"\n        },\n        {\n          \"index\": 1,\n          \"text\": \"Content updated by index\"\n        },\n        {\n          \"index\": 2,\n          \"text\": \"Third text element updated\"\n        }\n      ]\n    }\n  ],\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"]
+            },
+            "description": "INDEX-ONLY UPDATE: Update slide content using only the new textUpdates array without title/content fields. Provides precise control over which text elements to update by their position (sorted by size). Example uses second slide ID - replace with actual slide ID from Get Presentation Details."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 400/401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Index-only update successful', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        console.log('✅ Successfully updated slide using index-only method');",
+                  "    });",
+                  "} else if (pm.response.code === 400) {",
+                  "    pm.test('Validation error handled correctly', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        console.log('❌ Error:', responseJson.error);",
+                  "        ",
+                  "        if (responseJson.error && responseJson.error.includes('index')) {",
+                  "            console.log('💡 Tip: Check slide has enough text elements for the indices used');",
+                  "        }",
+                  "        if (responseJson.error && responseJson.error.includes('not found')) {",
+                  "            console.log('💡 Tip: Use real slide ID from Get Presentation Details endpoint');",
+                  "        }",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Content by Object ID (Precise Targeting)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slideUpdates\": [\n    {\n      \"slideId\": \"p\",\n      \"textUpdates\": [\n        {\n          \"objectId\": \"text-element-object-id-1\",\n          \"text\": \"Title updated by Object ID at {{$timestamp}}\"\n        },\n        {\n          \"objectId\": \"text-element-object-id-2\",\n          \"text\": \"Content updated by specific Object ID\"\n        },\n        {\n          \"objectId\": \"text-element-object-id-3\",\n          \"text\": \"Footer updated with precise targeting\"\n        }\n      ]\n    }\n  ],\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"]
+            },
+            "description": "OBJECT ID UPDATE (MOST PRECISE): Update slide content using Google Slides object IDs for exact targeting of text elements. This is the most reliable method as it targets specific elements regardless of size or position changes. Get object IDs from the 'Get Presentation Content' endpoint first, then use them here for precise updates. Replace the example object IDs with real ones from your slides."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 400/401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Object ID update successful', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        console.log('✅ Successfully updated slide using Object ID method (most precise)');",
+                  "    });",
+                  "} else if (pm.response.code === 400) {",
+                  "    pm.test('Object ID validation handled correctly', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        console.log('❌ Error:', responseJson.error);",
+                  "        ",
+                  "        if (responseJson.error && responseJson.error.includes('object ID')) {",
+                  "            console.log('💡 Tip: Get real object IDs from \"Get Presentation Content\" endpoint first');",
+                  "        }",
+                  "        if (responseJson.error && responseJson.error.includes('both index and objectId')) {",
+                  "            console.log('💡 Tip: Use either index OR objectId, not both in the same update');",
+                  "        }",
+                  "        if (responseJson.error && responseJson.error.includes('specify either')) {",
+                  "            console.log('💡 Tip: Each textUpdate must have either index or objectId');",
+                  "        }",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mixed Update Methods (Index + Object ID)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slideUpdates\": [\n    {\n      \"slideId\": \"p\",\n      \"title\": \"Updated Title (backward compatible)\",\n      \"textUpdates\": [\n        {\n          \"index\": 1,\n          \"text\": \"Content updated by index\"\n        },\n        {\n          \"objectId\": \"text-element-object-id-footer\",\n          \"text\": \"Footer updated by Object ID at {{$timestamp}}\"\n        },\n        {\n          \"index\": 3,\n          \"text\": \"Sidebar updated by index\"\n        }\n      ]\n    }\n  ],\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}"]
+            },
+            "description": "MIXED UPDATE METHODS: Demonstrate using multiple update approaches in a single request. Combines backward-compatible title field, index-based updates, and object ID-based updates. Each textUpdate can use either index OR objectId (not both). This flexibility allows you to use the most appropriate method for each element - object IDs for precision, indices for convenience."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 or 400/401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test('Mixed update methods successful', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        console.log('✅ Successfully updated slide using mixed methods');",
+                  "        console.log('🎯 Used: title field + index updates + object ID updates');",
+                  "    });",
+                  "} else if (pm.response.code === 400) {",
+                  "    pm.test('Mixed method validation handled correctly', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', false);",
+                  "        console.log('❌ Error:', responseJson.error);",
+                  "        console.log('💡 Check that each textUpdate uses either index OR objectId, not both');",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add New Slide",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"layoutId\": \"TITLE_AND_BODY\",\n  \"userId\": \"{{testUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/presentations/{{testPresentationId}}/slides",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "presentations", "{{testPresentationId}}", "slides"]
+            },
+            "description": "Add a new slide to an existing Google Slides presentation with optional layout specification."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 or 401/404', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 401, 404]);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    pm.test('Slide added successfully', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson).to.have.property('success', true);",
+                  "        pm.expect(responseJson).to.have.property('slideId');",
+                  "        pm.expect(responseJson).to.have.property('message');",
+                  "    });",
+                  "    ",
+                  "    pm.test('New slide ID is provided', function () {",
+                  "        const responseJson = pm.response.json();",
+                  "        pm.expect(responseJson.slideId).to.be.a('string');",
+                  "        pm.expect(responseJson.slideId).to.not.be.empty;",
+                  "        console.log(`➕ Added new slide with ID: ${responseJson.slideId}`);",
+                  "    });",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Check Slides Authentication Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/slides/auth/status?userId={{testUserId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "slides", "auth", "status"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{testUserId}}",
+                  "description": "User ID to check authentication for (required)"
+                }
+              ]
+            },
+            "description": "Check if a user is authenticated with Google Slides and get their profile information."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Authentication status response is valid', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('success', true);",
+                  "    pm.expect(responseJson).to.have.property('authenticated');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "});",
+                  "",
+                  "pm.test('User profile included if authenticated', function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.authenticated === true) {",
+                  "        pm.expect(responseJson).to.have.property('userProfile');",
+                  "        if (responseJson.userProfile) {",
+                  "            pm.expect(responseJson.userProfile).to.have.property('id');",
+                  "            pm.expect(responseJson.userProfile).to.have.property('email');",
+                  "            console.log(`✅ User authenticated: ${responseJson.userProfile.email}`);",
+                  "        }",
+                  "    } else {",
+                  "        console.log('❌ User not authenticated with Google Slides');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Content Generation (Placeholders)",
       "description": "AI content generation endpoints (coming soon)",
       "item": [
@@ -1067,6 +1833,12 @@
       "key": "geography",
       "value": "United States",
       "type": "string"
+    },
+    {
+      "key": "testUserId",
+      "value": "test-user-123",
+      "type": "string",
+      "description": "Test user ID for Google Slides API endpoints"
     }
   ]
 }
