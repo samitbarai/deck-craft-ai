@@ -103,15 +103,15 @@ export default async function googleAuthRoutes(fastify: FastifyInstance) {
       }
 
       // Store tokens in database
-      const expiresAt = tokens.expiry_date ? new Date(tokens.expiry_date) : undefined;
+      const expiresAt = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
       
       await tokenManager.storeTokens({
         user_id: oauthState.userId,
         provider: 'google',
         access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token || undefined,
-        token_type: tokens.token_type || 'Bearer',
-        scope: tokens.scope,
+        refresh_token: tokens.refresh_token ?? null,
+        token_type: tokens.token_type ?? 'Bearer',
+        scope: tokens.scope ?? null,
         expires_at: expiresAt
       });
 
@@ -217,11 +217,11 @@ export default async function googleAuthRoutes(fastify: FastifyInstance) {
       const { credentials } = await oauth2Client.refreshAccessToken();
       
       // Update tokens in database
-      const expiresAt = credentials.expiry_date ? new Date(credentials.expiry_date) : undefined;
+      const expiresAt = credentials.expiry_date ? new Date(credentials.expiry_date) : null;
       
       await tokenManager.updateTokens(userId, 'google', {
         access_token: credentials.access_token!,
-        refresh_token: credentials.refresh_token || tokens.refresh_token,
+        refresh_token: credentials.refresh_token ?? tokens.refresh_token,
         expires_at: expiresAt
       });
 

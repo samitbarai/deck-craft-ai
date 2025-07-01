@@ -1,27 +1,9 @@
-import { Pool } from 'pg';
+import { PrismaClient, user_oauth_tokens as OAuthTokens } from '../generated/prisma';
 import crypto from 'crypto';
 
-// Database configuration (you may want to import this from a shared config)
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'deckcraft_ai',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-});
+const prisma = new PrismaClient();
 
-export interface OAuthTokens {
-  id?: string;
-  user_id: string;
-  provider: string;
-  access_token: string;
-  refresh_token?: string;
-  token_type: string;
-  scope?: string;
-  expires_at?: Date;
-  created_at?: Date;
-  updated_at?: Date;
-}
+export { OAuthTokens };
 
 export class TokenManager {
   private encryptionKey: string;
@@ -54,149 +36,73 @@ export class TokenManager {
   }
 
   // Store OAuth tokens for a user
-  async storeTokens(tokens: OAuthTokens): Promise<OAuthTokens> {
-    const client = await pool.connect();
-    
-    try {
-      // Encrypt sensitive tokens
-      const encryptedAccessToken = this.encrypt(tokens.access_token);
-      const encryptedRefreshToken = tokens.refresh_token ? this.encrypt(tokens.refresh_token) : null;
+  async storeTokens(tokens: Omit<OAuthTokens, 'id' | 'created_at' | 'updated_at'>): Promise<OAuthTokens> {
+    const encryptedAccessToken = this.encrypt(tokens.access_token);
+    const encryptedRefreshToken = tokens.refresh_token ? this.encrypt(tokens.refresh_token) : null;
 
-      const query = `
-        INSERT INTO user_oauth_tokens (
-          user_id, provider, access_token, refresh_token, 
-          token_type, scope, expires_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        ON CONFLICT (user_id, provider) 
-        DO UPDATE SET 
-          access_token = EXCLUDED.access_token,
-          refresh_token = EXCLUDED.refresh_token,
-          token_type = EXCLUDED.token_type,
-          scope = EXCLUDED.scope,
-          expires_at = EXCLUDED.expires_at,
-          updated_at = CURRENT_TIMESTAMP
-        RETURNING *;
-      `;
+    const data = {
+      user_id: tokens.user_id,
+      provider: tokens.provider,
+      access_token: encryptedAccessToken,
+      refresh_token: encryptedRefreshToken,
+      token_type: tokens.token_type,
+      scope: tokens.scope,
+      expires_at: tokens.expires_at,
+    };
 
-      const values = [
-        tokens.user_id,
-        tokens.provider,
-        encryptedAccessToken,
-        encryptedRefreshToken,
-        tokens.token_type,
-        tokens.scope,
-        tokens.expires_at
-      ];
-
-      const result = await client.query(query, values);
-      return result.rows[0];
-    } finally {
-      client.release();
-    }
+    return prisma.user_oauth_tokens.upsert({
+      where: { user_id_provider: { user_id: tokens.user_id!, provider: tokens.provider } },
+      update: data,
+      create: data,
+    });
   }
 
   // Retrieve OAuth tokens for a user and provider
   async getTokens(userId: string, provider: string): Promise<OAuthTokens | null> {
-    const client = await pool.connect();
-    
-    try {
-      const query = `
-        SELECT * FROM user_oauth_tokens 
-        WHERE user_id = $1 AND provider = $2;
-      `;
+    const tokens = await prisma.user_oauth_tokens.findUnique({
+      where: { user_id_provider: { user_id: userId, provider: provider } },
+    });
 
-      const result = await client.query(query, [userId, provider]);
-      
-      if (result.rows.length === 0) {
-        return null;
-      }
-
-      const row = result.rows[0];
-      
-      // Decrypt sensitive tokens
-      return {
-        ...row,
-        access_token: this.decrypt(row.access_token),
-        refresh_token: row.refresh_token ? this.decrypt(row.refresh_token) : null
-      };
-    } finally {
-      client.release();
+    if (!tokens) {
+      return null;
     }
+
+    return {
+      ...tokens,
+      access_token: this.decrypt(tokens.access_token),
+      refresh_token: tokens.refresh_token ? this.decrypt(tokens.refresh_token) : null,
+    };
   }
 
   // Update tokens (typically after refresh)
-  async updateTokens(userId: string, provider: string, newTokens: Partial<OAuthTokens>): Promise<OAuthTokens | null> {
-    const client = await pool.connect();
-    
-    try {
-      // Build dynamic update query
-      const updateFields: string[] = [];
-      const values: any[] = [userId, provider];
-      let paramCount = 2;
+  async updateTokens(userId: string, provider: string, newTokens: Partial<Omit<OAuthTokens, 'id' | 'user_id' | 'provider' | 'created_at' | 'updated_at'>>): Promise<OAuthTokens | null> {
+    const data: { [key: string]: any } = { ...newTokens };
 
-      if (newTokens.access_token) {
-        updateFields.push(`access_token = $${++paramCount}`);
-        values.push(this.encrypt(newTokens.access_token));
-      }
-
-      if (newTokens.refresh_token) {
-        updateFields.push(`refresh_token = $${++paramCount}`);
-        values.push(this.encrypt(newTokens.refresh_token));
-      }
-
-      if (newTokens.expires_at) {
-        updateFields.push(`expires_at = $${++paramCount}`);
-        values.push(newTokens.expires_at);
-      }
-
-      if (newTokens.scope) {
-        updateFields.push(`scope = $${++paramCount}`);
-        values.push(newTokens.scope);
-      }
-
-      updateFields.push('updated_at = CURRENT_TIMESTAMP');
-
-      const query = `
-        UPDATE user_oauth_tokens 
-        SET ${updateFields.join(', ')}
-        WHERE user_id = $1 AND provider = $2
-        RETURNING *;
-      `;
-
-      const result = await client.query(query, values);
-      
-      if (result.rows.length === 0) {
-        return null;
-      }
-
-      const row = result.rows[0];
-      
-      // Decrypt sensitive tokens
-      return {
-        ...row,
-        access_token: this.decrypt(row.access_token),
-        refresh_token: row.refresh_token ? this.decrypt(row.refresh_token) : null
-      };
-    } finally {
-      client.release();
+    if (newTokens.access_token) {
+      data.access_token = this.encrypt(newTokens.access_token);
     }
+    if (newTokens.refresh_token) {
+      data.refresh_token = this.encrypt(newTokens.refresh_token);
+    }
+
+    const updatedTokens = await prisma.user_oauth_tokens.update({
+      where: { user_id_provider: { user_id: userId, provider: provider } },
+      data,
+    });
+
+    return {
+      ...updatedTokens,
+      access_token: this.decrypt(updatedTokens.access_token),
+      refresh_token: updatedTokens.refresh_token ? this.decrypt(updatedTokens.refresh_token) : null,
+    };
   }
 
   // Delete OAuth tokens for a user and provider
   async deleteTokens(userId: string, provider: string): Promise<boolean> {
-    const client = await pool.connect();
-    
-    try {
-      const query = `
-        DELETE FROM user_oauth_tokens 
-        WHERE user_id = $1 AND provider = $2;
-      `;
-
-      const result = await client.query(query, [userId, provider]);
-      return result.rowCount !== null && result.rowCount > 0;
-    } finally {
-      client.release();
-    }
+    const result = await prisma.user_oauth_tokens.delete({
+      where: { user_id_provider: { user_id: userId, provider: provider } },
+    });
+    return !!result;
   }
 
   // Check if tokens are expired
@@ -210,19 +116,14 @@ export class TokenManager {
 
   // Get all providers for a user
   async getUserProviders(userId: string): Promise<string[]> {
-    const client = await pool.connect();
-    
-    try {
-      const query = `
-        SELECT DISTINCT provider FROM user_oauth_tokens 
-        WHERE user_id = $1;
-      `;
-
-      const result = await client.query(query, [userId]);
-      return result.rows.map(row => row.provider);
-    } finally {
-      client.release();
-    }
+    const tokens = await prisma.user_oauth_tokens.findMany({
+      where: { user_id: userId },
+      distinct: ['provider'],
+      select: {
+        provider: true,
+      },
+    });
+    return tokens.map(token => token.provider);
   }
 }
 

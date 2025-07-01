@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model content_chunks {
+  id            String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  pitch_deck_id String?      @db.Uuid
+  page_number   Int?
+  chunk_type    String?      @db.VarChar(50)
+  content       String?
+  image_url     String?      @db.VarChar(500)
+  metadata      Json?
+  vector_id     String?      @db.VarChar(255)
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  pitch_decks   pitch_decks? @relation(fields: [pitch_deck_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([pitch_deck_id], map: "idx_content_chunks_pitch_deck_id")
+  @@index([vector_id], map: "idx_content_chunks_vector_id")
+}
+
+model content_outlines {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id             String?                   @db.Uuid
+  title                   String                    @db.VarChar(255)
+  outline_data            Json
+  context_data            Json?
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  merchants               merchants?                @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  google_slides_templates google_slides_templates[]
+
+  @@index([merchant_id], map: "idx_content_outlines_merchant_id")
+}
+
+model google_slides_templates {
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id      String?           @db.Uuid
+  outline_id       String?           @db.Uuid
+  slides_file_id   String?           @db.VarChar(255)
+  slides_file_url  String?           @db.VarChar(500)
+  template_name    String?           @db.VarChar(255)
+  slide_count      Int?
+  status           String?           @default("pending") @db.VarChar(50)
+  created_at       DateTime?         @default(now()) @db.Timestamptz(6)
+  completed_at     DateTime?         @db.Timestamptz(6)
+  merchants        merchants?        @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  content_outlines content_outlines? @relation(fields: [outline_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([merchant_id], map: "idx_google_slides_templates_merchant_id")
+  @@index([outline_id], map: "idx_google_slides_templates_outline_id")
+}
+
+model merchants {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id                 String?                   @db.Uuid
+  company_name            String                    @db.VarChar(255)
+  industry                String?                   @db.VarChar(100)
+  geography               String?                   @db.VarChar(100)
+  description             String?
+  website                 String?                   @db.VarChar(255)
+  logo_url                String?                   @db.VarChar(500)
+  created_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?                 @default(now()) @db.Timestamptz(6)
+  content_outlines        content_outlines[]
+  google_slides_templates google_slides_templates[]
+  users                   users?                    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  pitch_decks             pitch_decks[]
+
+  @@index([user_id], map: "idx_merchants_user_id")
+}
+
+model pitch_decks {
+  id                String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  merchant_id       String?          @db.Uuid
+  filename          String           @db.VarChar(255)
+  original_filename String           @db.VarChar(255)
+  file_size         Int?
+  file_path         String?          @db.VarChar(500)
+  mime_type         String?          @db.VarChar(100)
+  page_count        Int?
+  upload_status     String?          @default("pending") @db.VarChar(50)
+  processing_status String?          @default("pending") @db.VarChar(50)
+  created_at        DateTime?        @default(now()) @db.Timestamptz(6)
+  processed_at      DateTime?        @db.Timestamptz(6)
+  content_chunks    content_chunks[]
+  merchants         merchants?       @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([merchant_id], map: "idx_pitch_decks_merchant_id")
+}
+
+model user_oauth_tokens {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id       String?   @db.Uuid
+  provider      String    @db.VarChar(50)
+  access_token  String
+  refresh_token String?
+  token_type    String?   @default("Bearer") @db.VarChar(50)
+  scope         String?
+  expires_at    DateTime? @db.Timestamptz(6)
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+  users         users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, provider])
+  @@index([provider], map: "idx_user_oauth_tokens_provider")
+  @@index([user_id], map: "idx_user_oauth_tokens_user_id")
+}
+
+model users {
+  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email             String              @unique @db.VarChar(255)
+  password_hash     String              @db.VarChar(255)
+  first_name        String?             @db.VarChar(100)
+  last_name         String?             @db.VarChar(100)
+  company           String?             @db.VarChar(255)
+  role              String?             @default("user") @db.VarChar(50)
+  created_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime?           @default(now()) @db.Timestamptz(6)
+  last_login        DateTime?           @db.Timestamptz(6)
+  is_active         Boolean?            @default(true)
+  merchants         merchants[]
+  user_oauth_tokens user_oauth_tokens[]
+}
