@@ -69,10 +69,10 @@ export class VespaClient {
 
   async document(docId: string, document: any): Promise<any> {
     try {
-      const docUrl = `${this.config.endpoint}/document/v1/deckcraft/content/docid/${docId}`;
+      const docUrl = `${this.config.endpoint}/document/v1/deckcraft/slide_chunk/docid/${docId}`;
       
       const response = await fetch(docUrl, {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -90,6 +90,7 @@ export class VespaClient {
       throw error;
     }
   }
+
 }
 
 // Create and export default Vespa client instance
@@ -109,4 +110,4 @@ export const connectVespa = async (): Promise<void> => {
     // Don't exit the process - allow the app to start without Vespa
     console.log('⚠️  Running without Vespa vector search capabilities');
   }
-}; 
+};

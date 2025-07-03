@@ -97,13 +97,13 @@
         "id": 4,
         "title": "Implement Vespa Integration for Vector Database",
         "description": "Set up Vespa for storing and retrieving slide-chunk embeddings, enabling efficient RAG retrieval.",
-        "status": "pending",
+        "status": "done",
         "dependencies": [
           1,
           2
         ],
         "priority": "high",
-        "details": "1. Set up a Vespa instance (local or cloud).\n2. Define a Vespa application package for slide-chunk schema.\n3. Implement embedding generation using OpenAI's text-embedding-ada-002 model.\n4. Create a service for indexing slide chunks and their embeddings in Vespa.\n5. Implement a retrieval service for finding relevant slide chunks.\n\nVespa schema example:\n```yaml\nsearch slide_chunk {\n  document slide_chunk {\n    field id type string {\n      indexing: summary | attribute\n    }\n    field content type string {\n      indexing: index | summary\n    }\n    field embedding type tensor<float>(x[1536]) {\n      indexing: attribute | index\n      attribute {\n        distance-metric: angular\n      }\n    }\n    field metadata type string {\n      indexing: attribute | summary\n    }\n  }\n  rank-profile similarity {\n    inputs {\n      query_embedding: tensor<float>(x[1536])\n    }\n    first-phase {\n      expression: closeness(field, embedding)\n    }\n  }\n}\n```\n\nEmbedding and indexing process:\n1. Split PDF content into chunks.\n2. Generate embeddings for each chunk using OpenAI API.\n3. Index chunks and embeddings in Vespa.\n\nRetrieval process:\n1. Generate query embedding.\n2. Use Vespa's nearest neighbor search to find similar chunks.",
+        "details": "1. Set up a Vespa instance (local or cloud).\n2. Define a Vespa application package for slide-chunk schema.\n3. Implement embedding generation using Google's Gemini API (e.g., 'text-embedding-004' model).\n4. Create a service for indexing slide chunks and their embeddings in Vespa.\n5. Implement a retrieval service for finding relevant slide chunks.\n\nVespa schema example:\n```yaml\nsearch slide_chunk {\n  document slide_chunk {\n    field id type string {\n      indexing: summary | attribute\n    }\n    field content type string {\n      indexing: index | summary\n    }\n    # Gemini embedding models (e.g., text-embedding-004) produce 768-dimensional vectors\n    field embedding type tensor<float>(x[768]) {\n      indexing: attribute | index\n      attribute {\n        distance-metric: angular\n      }\n    }\n    field metadata type string {\n      indexing: attribute | summary\n    }\n  }\n  rank-profile similarity {\n    inputs {\n      query_embedding: tensor<float>(x[768])\n    }\n    first-phase {\n      expression: closeness(field, embedding)\n    }\n  }\n}\n```\n\nEmbedding and indexing process:\n1. Split PDF content into chunks.\n2. Generate embeddings for each chunk using Gemini API.\n3. Index chunks and embeddings in Vespa.\n\nRetrieval process:\n1. Generate query embedding.\n2. Use Vespa's nearest neighbor search to find similar chunks.",
         "testStrategy": "1. Unit test embedding generation function.\n2. Verify correct indexing of slide chunks in Vespa.\n3. Test retrieval accuracy with known similar chunks.\n4. Measure retrieval latency and optimize if necessary.\n5. Integration test the entire pipeline from PDF ingestion to chunk retrieval.\n6. Validate scalability by testing with a large number of indexed chunks.",
         "subtasks": []
       },
@@ -338,7 +338,7 @@
     ],
     "metadata": {
       "created": "2025-06-25T22:08:50.599Z",
-      "updated": "2025-07-01T05:46:39.053Z",
+      "updated": "2025-07-03T09:54:51.404Z",
       "description": "Tasks for master context"
     }
   }

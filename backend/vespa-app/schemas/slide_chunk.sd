@@ -1,0 +1,28 @@
+search slide_chunk {
+    document slide_chunk {
+        field id type string {
+            indexing: summary | attribute
+        }
+        field content type string {
+            indexing: index | summary
+        }
+        field embedding type tensor<float>(x[768]) {
+            indexing: attribute | index
+            attribute {
+                distance-metric: angular
+            }
+        }
+        field metadata type string {
+            indexing: attribute | summary
+        }
+    }
+    
+    rank-profile similarity {
+        inputs {
+            query(q_embedding) tensor<float>(x[768])
+        }
+        first-phase {
+            expression: closeness(field, embedding)
+        }
+    }
+}

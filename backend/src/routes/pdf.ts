@@ -476,9 +476,12 @@ export default async function pdfRoutes(fastify: FastifyInstance) {
       };
 
       // Process the PDF
+      fastify.log.info('Processing PDF...');
       const result = await PDFProcessor.processPDF(buffer, data.filename, metadata);
+      fastify.log.info('PDF processing complete.');
 
       // Store the pitch deck and its content
+      fastify.log.info('Storing pitch deck and content...');
       const pitchDeck = await pdfStorageService.storePitchDeckWithContent(
         {
           // merchant_id: 'some-merchant-id', // TODO: Get from authenticated user
@@ -490,6 +493,7 @@ export default async function pdfRoutes(fastify: FastifyInstance) {
         },
         result.pages
       );
+      fastify.log.info(`Pitch deck stored with ID: ${pitchDeck.id}`);
 
       return reply.status(200).send({
         success: true,

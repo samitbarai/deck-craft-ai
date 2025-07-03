@@ -27,6 +27,7 @@
     "@fastify/multipart": "^9.0.3",
     "@fastify/secure-session": "^8.2.0",
     "@fastify/session": "^11.1.0",
+    "@google/generative-ai": "^0.24.1",
     "@types/multer": "^1.4.13",
     "@types/pdf-parse": "^1.1.5",
     "@types/pg": "^8.11.2",
@@ -46,7 +47,8 @@
     "pg": "^8.11.5",
     "pino-pretty": "^13.0.0",
     "sharp": "^0.33.5",
-    "tesseract.js": "^5.1.1"
+    "tesseract.js": "^5.1.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@prisma/client": "^6.10.1",
@@ -55,6 +57,7 @@
     "@types/express": "^4.17.21",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.11.30",
+    "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.0",
     "prisma": "^6.10.1",
     "ts-node": "^10.9.2",
